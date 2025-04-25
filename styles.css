@@ -20,10 +20,12 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .section {
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,13 +220,12 @@ code {
 
 .footer {
     text-align: center;
-    padding: 1rem 0;
+    padding: 1rem;
+    background-color: var(--primary-bg);
     color: var(--text-secondary);
     font-size: 0.9rem;
-    background-color: var(--primary-bg);
-    margin-top: 2rem;
-    position: relative;
-    width: 100%;
+    position: static;
+    margin-top: auto;
 }
 
 .language-selector {
