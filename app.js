@@ -110,149 +110,94 @@ async function switchToBSC() {
 
 // Initialize payment process
 async function initiatePayment() {
-    if (!window.ethers) {
-        showTransactionError("MetaMask connection error. Please refresh the page and try again.");
-        console.error("Ethers library not loaded");
+    if (!window.ethereum || !window.ethers) {
+        showTransactionError("Please install MetaMask to proceed");
         return;
     }
 
-    if (!await checkNetwork()) return;
-    if (!amountSelect.value) {
-        alert('Please select an amount before proceeding.');
-        return;
-    }
-
-    showTransactionStatus('Initializing transaction...', '', true);
+    showTransactionStatus('Connecting to wallet...', '', true);
     payButton.disabled = true;
 
     try {
-        // 1. Get user's address and verify MetaMask connection
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const userAddress = accounts[0];
-        console.log('Connected wallet address:', userAddress);
-        
-        if (userAddress.toLowerCase() === PAYMENT_ADDRESS.toLowerCase()) {
-            showTransactionError("Cannot send from the payment address. Please use a different wallet.");
-            return;
-        }
-
-        // 2. Setup provider and contract
+        // 1. Connect to wallet and verify network
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        
-        // Verify we're on BSC
         const network = await provider.getNetwork();
-        console.log('Current network:', network);
+        
         if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
-            showTransactionError("Please switch to Binance Smart Chain network");
+            await switchToBSC();
+            showTransactionError("Please switch to Binance Smart Chain and try again");
             return;
         }
 
-        // 3. Setup USDT contract with full ABI
-        const usdtAbi = [
-            "function name() view returns (string)",
-            "function symbol() view returns (string)",
-            "function decimals() view returns (uint8)",
-            "function balanceOf(address) view returns (uint256)",
-            "function transfer(address to, uint256 value) returns (bool)",
-            "function approve(address spender, uint256 value) returns (bool)",
-            "event Transfer(address indexed from, address indexed to, uint256 value)"
-        ];
+        // 2. Get user's address
+        const accounts = await provider.send("eth_requestAccounts", []);
+        const userAddress = accounts[0];
 
+        // 3. Setup USDT contract
         const usdtContract = new ethers.Contract(
             USDT_CONTRACT_ADDRESS,
-            usdtAbi,
-            signer
+            [
+                "function transfer(address to, uint256 value) returns (bool)",
+                "function balanceOf(address) view returns (uint256)",
+                "function decimals() view returns (uint8)"
+            ],
+            provider.getSigner()
         );
 
-        // 4. Verify USDT contract
-        try {
-            const tokenName = await usdtContract.name();
-            const tokenSymbol = await usdtContract.symbol();
-            const tokenDecimals = await usdtContract.decimals();
-            console.log('Token details:', {
-                name: tokenName,
-                symbol: tokenSymbol,
-                decimals: tokenDecimals,
-                address: USDT_CONTRACT_ADDRESS
-            });
-        } catch (error) {
-            console.error('Error verifying USDT contract:', error);
-            showTransactionError("Error verifying USDT contract. Please make sure you're on BSC network.");
+        // 4. Get amount to send
+        const selectedAmount = amountSelect.value;
+        if (!selectedAmount) {
+            showTransactionError("Please select an amount");
             return;
         }
 
-        // 5. Check balances
-        const userBalance = await usdtContract.balanceOf(userAddress);
-        const amount = ethers.utils.parseUnits(amountSelect.value, 6);
-        
-        console.log('Transaction details:', {
-            from: userAddress,
-            to: PAYMENT_ADDRESS,
-            amount: amountSelect.value,
-            amountWei: amount.toString(),
-            userBalance: ethers.utils.formatUnits(userBalance, 6)
-        });
+        // 5. Check user's USDT balance
+        const balance = await usdtContract.balanceOf(userAddress);
+        const decimals = await usdtContract.decimals();
+        const amount = ethers.utils.parseUnits(selectedAmount, decimals);
 
-        if (userBalance.lt(amount)) {
-            showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(userBalance, 6)} USDT but trying to send ${amountSelect.value} USDT`);
+        if (balance.lt(amount)) {
+            showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(balance, decimals)} USDT`);
             return;
         }
 
-        // 6. Estimate gas before sending transaction
-        try {
-            const gasEstimate = await usdtContract.estimateGas.transfer(PAYMENT_ADDRESS, amount);
-            console.log('Estimated gas:', gasEstimate.toString());
-        } catch (gasError) {
-            console.error('Gas estimation error:', gasError);
-            showTransactionError("Error estimating gas. Please make sure you have enough BNB for fees.");
-            return;
-        }
-
-        // 7. Send transaction
-        showTransactionStatus('Waiting for transaction confirmation...', '', true);
+        // 6. Send transaction
+        showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
         
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
-            gasLimit: 100000 // Set a reasonable gas limit
+            gasLimit: 100000
         });
+
+        showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
         
-        console.log('Transaction sent:', tx.hash);
-        showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
-        
-        // 8. Wait for confirmation
         const receipt = await tx.wait();
-        console.log('Transaction confirmed:', receipt);
         
         if (receipt.status === 1) {
             showTransactionSuccess();
         } else {
-            showTransactionError("Transaction failed. Please check BSCscan for details.");
+            throw new Error('Transaction failed');
         }
 
     } catch (error) {
         console.error('Transaction error:', error);
         
-        let errorMessage = 'Transaction failed. ';
-        
         if (error.code === 4001) {
-            errorMessage += 'You rejected the transaction.';
-        } else if (error.code === -32603) {
-            errorMessage += 'Insufficient USDT balance.';
-        } else if (error.message && error.message.includes('user rejected')) {
-            errorMessage += 'You rejected the transaction.';
-        } else if (error.message && error.message.includes('insufficient funds')) {
-            errorMessage += 'Insufficient BNB for gas fees.';
-        } else if (error.message && error.message.includes('exceeds balance')) {
-            errorMessage += 'Insufficient USDT balance.';
+            showTransactionError('You rejected the transaction');
+        } else if (error.message.includes('user rejected')) {
+            showTransactionError('You rejected the transaction');
+        } else if (error.message.includes('insufficient funds')) {
+            showTransactionError('Insufficient BNB for gas fees');
+        } else if (error.data?.message?.includes('transfer amount exceeds')) {
+            showTransactionError('Insufficient USDT balance');
         } else {
-            errorMessage += 'Please make sure you have enough USDT and BNB for gas fees. Error: ' + error.message;
+            showTransactionError('Transaction failed. Please make sure you have enough USDT and BNB');
         }
-        
-        showTransactionError(errorMessage);
+    } finally {
         payButton.disabled = false;
     }
 }
 
+// Show transaction status
 function showTransactionStatus(message, details = '', loading = false) {
     transactionStatus.classList.remove('hidden');
     statusMessage.textContent = message;
@@ -260,19 +205,21 @@ function showTransactionStatus(message, details = '', loading = false) {
     loadingSpinner.classList.toggle('hidden', !loading);
 }
 
+// Show transaction success
 function showTransactionSuccess() {
     showTransactionStatus(
-        '🎉 Congratulations! Transaction successfully completed.',
-        'Your wallet has been successfully included in the Family & Friends Sale.\n' +
-        'On TGE day, you will receive 10% of your tokens immediately.\n' +
-        'The remaining 90% will be released monthly over the next 4 months (vesting).',
+        '🎉 Transaction successful!',
+        'Your tokens will be distributed according to the vesting schedule:\n' +
+        '• 10% at TGE\n' +
+        '• 90% over 4 months',
         false
     );
     statusMessage.style.color = 'var(--success-color)';
 }
 
+// Show transaction error
 function showTransactionError(message) {
-    showTransactionStatus('⚠️ Transaction failed. Please try again.', message, false);
+    showTransactionStatus('❌ ' + message, '', false);
     statusMessage.style.color = 'var(--error-color)';
     payButton.disabled = false;
 }
