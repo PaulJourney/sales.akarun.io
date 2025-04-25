@@ -168,6 +168,11 @@ function showTransactionError() {
 
 // Funzione per cambiare lingua
 function changeLanguage(lang) {
+    if (!translations || !translations[lang]) {
+        console.error('Translations not found for language:', lang);
+        return;
+    }
+
     // Salva la lingua selezionata
     localStorage.setItem('selectedLanguage', lang);
     
@@ -182,18 +187,25 @@ function changeLanguage(lang) {
     // Aggiorna tutti gli elementi con attributo data-i18n
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
-        if (translations[lang] && translations[lang][key]) {
-            element.textContent = translations[lang][key];
+        if (translations[lang][key]) {
+            if (element.tagName === 'OPTION') {
+                element.textContent = translations[lang][key];
+            } else {
+                element.innerHTML = translations[lang][key];
+            }
         }
     });
 
     // Aggiorna i placeholder
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[lang] && translations[lang][key]) {
+        if (translations[lang][key]) {
             element.placeholder = translations[lang][key];
         }
     });
+
+    // Aggiorna il titolo della pagina
+    document.title = `Akarun Token - ${translations[lang].title}`;
 }
 
 // Aggiungi event listener per i link delle lingue
@@ -205,8 +217,14 @@ document.querySelectorAll('.language-selector a').forEach(el => {
     });
 });
 
-// Imposta la lingua iniziale
-document.addEventListener('DOMContentLoaded', () => {
+// Imposta la lingua iniziale quando il DOM è completamente caricato
+window.addEventListener('DOMContentLoaded', () => {
+    // Verifica che le traduzioni siano disponibili
+    if (typeof translations === 'undefined') {
+        console.error('Translations not loaded!');
+        return;
+    }
+
     const savedLang = localStorage.getItem('selectedLanguage') || 'en';
     changeLanguage(savedLang);
 });
