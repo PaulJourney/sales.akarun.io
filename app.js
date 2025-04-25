@@ -131,14 +131,31 @@ async function initiatePayment() {
             signer
         );
 
-        const amount = ethers.utils.parseUnits(amountSelect.value, 18);
+        const amount = ethers.utils.parseUnits(amountSelect.value, 6);
+        console.log('Sending transaction with amount:', amount.toString());
+        
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount);
+        console.log('Transaction hash:', tx.hash);
+        
+        showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
+        
         await tx.wait();
+        console.log('Transaction confirmed!');
 
         showTransactionSuccess();
     } catch (error) {
         console.error('Transaction failed:', error);
-        showTransactionError();
+        let errorMessage = 'Transaction failed. ';
+        
+        if (error.code === 4001) {
+            errorMessage += 'You rejected the transaction.';
+        } else if (error.code === -32603) {
+            errorMessage += 'Insufficient USDT balance.';
+        } else {
+            errorMessage += 'Please make sure you have enough USDT and BNB for gas fees.';
+        }
+        
+        showTransactionError(errorMessage);
     }
 }
 
@@ -160,8 +177,8 @@ function showTransactionSuccess() {
     statusMessage.style.color = 'var(--success-color)';
 }
 
-function showTransactionError() {
-    showTransactionStatus('⚠️ Transaction failed. Please try again.', '', false);
+function showTransactionError(message) {
+    showTransactionStatus('⚠️ Transaction failed. Please try again.', message, false);
     statusMessage.style.color = 'var(--error-color)';
     payButton.disabled = false;
 }
