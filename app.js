@@ -4,6 +4,9 @@ const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
 const BSC_CHAIN_ID = "0x38";
 const TOKEN_PRICE = 0.005;
 
+// Password Configuration
+const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
+
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
 const mainContent = document.getElementById('main-content');
