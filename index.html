@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="title">Akarun Token - Family & Friends Sale</title>
+    <title>Akarun Token - Family & Friends Sale</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="language-selector">
-        <select id="language-select" class="language-dropdown">
-            <option value="en">English</option>
-            <option value="it">Italiano</option>
-            <option value="es">Español</option>
-            <option value="tr">Türkçe</option>
-            <option value="ph">Filipino</option>
-        </select>
+        <a href="#" class="active">English</a>
+        <a href="#">Italiano</a>
+        <a href="#">Espanol</a>
+        <a href="#">Turkce</a>
+        <a href="#">Filipino</a>
+        <a href="#">Indian</a>
     </div>
 
     <div id="password-section" class="section">
         <div class="container">
             <div class="logo-container">
-                <img src="images/akarun-logo.svg" alt="Akarun Logo" class="logo">
+                <img src="images/akarun-logo.png" alt="Akarun Logo" class="logo">
             </div>
-            <h1>Akarun Token</h1>
-            <h2 data-i18n="title">Family & Friends Sale</h2>
+            <h2>Family & Friends Sale</h2>
             <div class="password-form">
-                <input type="password" id="password-input" data-i18n-placeholder="enterPassword" placeholder="Enter access password">
-                <button id="submit-password" class="button" data-i18n="accessSale">Access Sale</button>
+                <input type="password" id="password-input" placeholder="Enter access password">
+                <button id="submit-password" class="button">Access Sale</button>
                 <p id="password-error" class="error-message"></p>
             </div>
         </div>
@@ -36,23 +34,23 @@
     <div id="main-content" class="section hidden">
         <div class="container">
             <div class="logo-container">
-                <img src="images/akarun-logo.svg" alt="Akarun Logo" class="logo">
+                <img src="images/akarun-logo.png" alt="Akarun Logo" class="logo">
             </div>
-            <h1 data-i18n="welcome">Welcome to the Akarun Family & Friends Sale</h1>
+            <h2>Family & Friends Sale</h2>
             <div class="network-info">
-                <p class="important" data-i18n="networkInfo">This sale is conducted on Binance Smart Chain (BSC)</p>
+                <p class="important">This sale is conducted on Binance Smart Chain (BSC)</p>
             </div>
             
             <div class="info-box">
-                <p data-i18n="minMax">The minimum contribution is $200 and the maximum contribution per wallet is $2,000.</p>
-                <p data-i18n="paymentInfo">Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:</p>
+                <p>The minimum contribution is $200 and the maximum contribution per wallet is $2,000.</p>
+                <p>Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:</p>
                 <code>0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6</code>
             </div>
 
             <div class="purchase-section">
-                <label for="amount-select" data-i18n="selectAmount">Select Contribution Amount:</label>
+                <label for="amount-select">Select Contribution Amount:</label>
                 <select id="amount-select">
-                    <option value="" data-i18n="chooseAmount">Choose amount...</option>
+                    <option value="">Choose amount...</option>
                     <option value="100">$100</option>
                     <option value="200">$200</option>
                     <option value="500">$500</option>
@@ -61,10 +59,10 @@
                 </select>
 
                 <div id="token-display" class="token-info hidden">
-                    <p><span data-i18n="youWillReceive">You will receive:</span> <span id="token-amount">0</span> <span data-i18n="tokens">AKA tokens</span></p>
+                    <p>You will receive: <span id="token-amount">0</span> AKA tokens</p>
                 </div>
 
-                <button id="pay-button" class="button" disabled data-i18n="payNow">
+                <button id="pay-button" class="button" disabled>
                     PAY NOW with MetaMask (BSC)
                 </button>
             </div>
@@ -76,23 +74,22 @@
             </div>
 
             <div class="network-help">
-                <h3 data-i18n="needHelp">Need help?</h3>
-                <p data-i18n="makeSure">Make sure you have:</p>
+                <h3>Need help?</h3>
+                <p>Make sure you have:</p>
                 <ul>
-                    <li data-i18n="requirement1">MetaMask installed and connected</li>
-                    <li data-i18n="requirement2">Switched to Binance Smart Chain network</li>
-                    <li data-i18n="requirement3">Sufficient USDT (BEP20) balance</li>
-                    <li data-i18n="requirement4">Some BNB for gas fees</li>
+                    <li>MetaMask installed and connected</li>
+                    <li>Switched to Binance Smart Chain network</li>
+                    <li>Sufficient USDT (BEP20) balance</li>
+                    <li>Some BNB for gas fees</li>
                 </ul>
             </div>
         </div>
     </div>
 
     <footer class="footer">
-        <p>© 2025, Akarun.io - All rights reserved</p>
+        © 2025, Akarun.io - All rights reserved
     </footer>
 
-    <script src="translations/translations.js"></script>
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
