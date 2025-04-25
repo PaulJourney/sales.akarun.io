@@ -218,6 +218,32 @@ code {
     letter-spacing: 2px;
 }
 
+#wallet-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: rgba(243, 186, 47, 0.1);
+    border-radius: 0.75rem;
+}
+
+#wallet-status {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+#wallet-status.connected {
+    color: var(--success-color);
+}
+
+#wallet-status.error {
+    color: var(--error-color);
+}
+
+.status-text {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
 .footer {
     text-align: center;
     padding: 1rem;

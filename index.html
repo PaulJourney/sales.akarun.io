@@ -36,51 +36,59 @@
                 <span class="text-logo">AKARUN</span>
             </div>
             <h2 data-i18n="title">Family & Friends Sale</h2>
-            <div class="network-info">
-                <p class="important" data-i18n="networkInfo">This sale is conducted on Binance Smart Chain (BSC)</p>
-            </div>
             
-            <div class="info-box">
-                <p data-i18n="minMax">The minimum contribution is $200 and the maximum contribution per wallet is $2,000.</p>
-                <p data-i18n="paymentInfo">Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:</p>
-                <code>0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6</code>
+            <div id="wallet-section">
+                <button id="connect-wallet" class="button">Connect MetaMask</button>
+                <p id="wallet-status" class="status-text"></p>
             </div>
 
-            <div class="purchase-section">
-                <label for="amount-select" data-i18n="selectAmount">Select Contribution Amount:</label>
-                <select id="amount-select">
-                    <option value="" data-i18n="chooseAmount">Choose amount...</option>
-                    <option value="100">$100</option>
-                    <option value="200">$200</option>
-                    <option value="500">$500</option>
-                    <option value="1000">$1,000</option>
-                    <option value="2000">$2,000</option>
-                </select>
-
-                <div id="token-display" class="token-info hidden">
-                    <p><span data-i18n="youWillReceive">You will receive:</span> <span id="token-amount">0</span> <span data-i18n="tokens">AKA tokens</span></p>
+            <div id="sale-section" class="hidden">
+                <div class="network-info">
+                    <p class="important" data-i18n="networkInfo">This sale is conducted on Binance Smart Chain (BSC)</p>
+                </div>
+                
+                <div class="info-box">
+                    <p data-i18n="minMax">The minimum contribution is $200 and the maximum contribution per wallet is $2,000.</p>
+                    <p data-i18n="paymentInfo">Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:</p>
+                    <code>0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6</code>
                 </div>
 
-                <button id="pay-button" class="button" disabled data-i18n="payNow">
-                    PAY NOW with MetaMask (BSC)
-                </button>
-            </div>
+                <div class="purchase-section">
+                    <label for="amount-select" data-i18n="selectAmount">Select Contribution Amount:</label>
+                    <select id="amount-select">
+                        <option value="" data-i18n="chooseAmount">Choose amount...</option>
+                        <option value="100">$100</option>
+                        <option value="200">$200</option>
+                        <option value="500">$500</option>
+                        <option value="1000">$1,000</option>
+                        <option value="2000">$2,000</option>
+                    </select>
 
-            <div id="transaction-status" class="hidden">
-                <div id="loading-spinner" class="spinner hidden"></div>
-                <p id="status-message"></p>
-                <p id="status-details"></p>
-            </div>
+                    <div id="token-display" class="token-info hidden">
+                        <p><span data-i18n="youWillReceive">You will receive:</span> <span id="token-amount">0</span> <span data-i18n="tokens">AKA tokens</span></p>
+                    </div>
 
-            <div class="network-help">
-                <h3 data-i18n="needHelp">Need help?</h3>
-                <p data-i18n="makeSure">Make sure you have:</p>
-                <ul>
-                    <li data-i18n="requirement1">MetaMask installed and connected</li>
-                    <li data-i18n="requirement2">Switched to Binance Smart Chain network</li>
-                    <li data-i18n="requirement3">Sufficient USDT (BEP20) balance</li>
-                    <li data-i18n="requirement4">Some BNB for gas fees</li>
-                </ul>
+                    <button id="pay-button" class="button" disabled data-i18n="payNow">
+                        PAY NOW with MetaMask (BSC)
+                    </button>
+                </div>
+
+                <div id="transaction-status" class="hidden">
+                    <div id="loading-spinner" class="spinner hidden"></div>
+                    <p id="status-message"></p>
+                    <p id="status-details"></p>
+                </div>
+
+                <div class="network-help">
+                    <h3 data-i18n="needHelp">Need help?</h3>
+                    <p data-i18n="makeSure">Make sure you have:</p>
+                    <ul>
+                        <li data-i18n="requirement1">MetaMask installed and connected</li>
+                        <li data-i18n="requirement2">Switched to Binance Smart Chain network</li>
+                        <li data-i18n="requirement3">Sufficient USDT (BEP20) balance</li>
+                        <li data-i18n="requirement4">Some BNB for gas fees</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

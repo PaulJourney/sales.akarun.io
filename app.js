@@ -4,13 +4,15 @@ const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
 const BSC_CHAIN_ID = "0x38";
 const TOKEN_PRICE = 0.005;
 
-// Password protection
-const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
+// DOM Elements
 const passwordSection = document.getElementById('password-section');
 const mainContent = document.getElementById('main-content');
 const passwordInput = document.getElementById('password-input');
 const submitPassword = document.getElementById('submit-password');
 const passwordError = document.getElementById('password-error');
+const connectWalletBtn = document.getElementById('connect-wallet');
+const walletStatus = document.getElementById('wallet-status');
+const saleSection = document.getElementById('sale-section');
 
 // Purchase elements
 const amountSelect = document.getElementById('amount-select');
@@ -22,10 +24,81 @@ const loadingSpinner = document.getElementById('loading-spinner');
 const statusMessage = document.getElementById('status-message');
 const statusDetails = document.getElementById('status-details');
 
-// Event listeners
+// Event Listeners
 submitPassword.addEventListener('click', validatePassword);
+connectWalletBtn.addEventListener('click', connectWallet);
 amountSelect.addEventListener('change', updateTokenAmount);
 payButton.addEventListener('click', initiatePayment);
+
+// Check if MetaMask is installed
+if (typeof window.ethereum !== 'undefined') {
+    // Listen for account changes
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    // Listen for network changes
+    window.ethereum.on('chainChanged', handleChainChanged);
+}
+
+// Handle account changes
+async function handleAccountsChanged(accounts) {
+    if (accounts.length === 0) {
+        // MetaMask is locked or the user has not connected any accounts
+        walletStatus.textContent = 'Please connect your MetaMask wallet';
+        walletStatus.className = 'status-text error';
+        saleSection.classList.add('hidden');
+        connectWalletBtn.textContent = 'Connect MetaMask';
+        connectWalletBtn.disabled = false;
+    } else {
+        // Update the current account
+        const userAddress = accounts[0];
+        walletStatus.textContent = 'Connected: ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+        walletStatus.className = 'status-text connected';
+        saleSection.classList.remove('hidden');
+        connectWalletBtn.textContent = 'Wallet Connected';
+        connectWalletBtn.disabled = true;
+    }
+}
+
+// Handle chain changes
+function handleChainChanged(chainId) {
+    if (chainId !== BSC_CHAIN_ID) {
+        walletStatus.textContent = 'Please switch to Binance Smart Chain';
+        walletStatus.className = 'status-text error';
+        saleSection.classList.add('hidden');
+    } else {
+        saleSection.classList.remove('hidden');
+    }
+}
+
+// Connect wallet function
+async function connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+        walletStatus.textContent = 'Please install MetaMask';
+        walletStatus.className = 'status-text error';
+        return;
+    }
+
+    connectWalletBtn.disabled = true;
+    connectWalletBtn.textContent = 'Connecting...';
+
+    try {
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // Check if we're on the correct network
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (chainId !== BSC_CHAIN_ID) {
+            await switchToBSC();
+        }
+        
+        handleAccountsChanged(accounts);
+    } catch (error) {
+        console.error('Error connecting wallet:', error);
+        walletStatus.textContent = 'Failed to connect wallet';
+        walletStatus.className = 'status-text error';
+        connectWalletBtn.disabled = false;
+        connectWalletBtn.textContent = 'Connect MetaMask';
+    }
+}
 
 // Password validation
 function validatePassword() {
