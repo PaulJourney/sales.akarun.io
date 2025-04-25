@@ -93,24 +93,5 @@ const translations = {
         requirement2: "Naka-switch sa Binance Smart Chain network",
         requirement3: "Sapat na USDT (BEP20) balance",
         requirement4: "Ilang BNB para sa gas fees"
-    },
-    in: {
-        title: "Family & Friends Sale",
-        enterPassword: "Enter access password",
-        accessSale: "Access Sale",
-        networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
-        minMax: "The minimum contribution is $200 and the maximum contribution per wallet is $2,000.",
-        paymentInfo: "Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:",
-        selectAmount: "Select Contribution Amount:",
-        chooseAmount: "Choose amount...",
-        youWillReceive: "You will receive:",
-        tokens: "AKA tokens",
-        payNow: "PAY NOW with MetaMask (BSC)",
-        needHelp: "Need help?",
-        makeSure: "Make sure you have:",
-        requirement1: "MetaMask installed and connected",
-        requirement2: "Switched to Binance Smart Chain network",
-        requirement3: "Sufficient USDT (BEP20) balance",
-        requirement4: "Some BNB for gas fees"
     }
 }; 
