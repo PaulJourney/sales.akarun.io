@@ -128,15 +128,17 @@ async function initiatePayment() {
     try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
+        console.log('User address:', userAddress);
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+        const signer = provider.getSigner(userAddress);  // Explicitly use userAddress
         
         // Add USDT ABI for better interaction
         const usdtAbi = [
             "function transfer(address to, uint256 value) returns (bool)",
             "function balanceOf(address account) view returns (uint256)",
-            "function approve(address spender, uint256 amount) returns (bool)"
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function decimals() view returns (uint8)"
         ];
         
         const usdtContract = new ethers.Contract(
@@ -145,46 +147,51 @@ async function initiatePayment() {
             signer
         );
 
-        const amount = ethers.utils.parseUnits(amountSelect.value, 6);
-        console.log('Sending transaction with amount:', amount.toString());
-        
         // Check USDT balance before proceeding
         try {
             const balance = await usdtContract.balanceOf(userAddress);
+            const amount = ethers.utils.parseUnits(amountSelect.value, 6);
+            console.log('User USDT balance:', ethers.utils.formatUnits(balance, 6));
+            console.log('Amount to send:', ethers.utils.formatUnits(amount, 6));
+            
             if (balance.lt(amount)) {
-                showTransactionError("Insufficient USDT balance. Please make sure you have enough USDT (BEP20) tokens.");
+                showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(balance, 6)} USDT but trying to send ${amountSelect.value} USDT`);
                 return;
             }
-        } catch (balanceError) {
-            console.error('Error checking balance:', balanceError);
+
+            console.log('Sending from:', userAddress);
+            console.log('Sending to:', PAYMENT_ADDRESS);
+            console.log('Amount:', amount.toString());
+            
+            const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
+                from: userAddress
+            });
+            
+            console.log('Transaction hash:', tx.hash);
+            showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
+            
+            await tx.wait();
+            console.log('Transaction confirmed!');
+            showTransactionSuccess();
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.code === 4001) {
+                showTransactionError('You rejected the transaction.');
+            } else if (error.code === -32603) {
+                showTransactionError('Insufficient USDT balance.');
+            } else if (error.message && error.message.includes('user rejected')) {
+                showTransactionError('You rejected the transaction.');
+            } else if (error.message && error.message.includes('insufficient funds')) {
+                showTransactionError('Insufficient BNB for gas fees.');
+            } else if (error.message && error.message.includes('exceeds balance')) {
+                showTransactionError('Insufficient USDT balance.');
+            } else {
+                showTransactionError('Transaction failed. Please make sure you have enough USDT and BNB for gas fees.');
+            }
         }
-
-        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount);
-        console.log('Transaction hash:', tx.hash);
-        
-        showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
-        
-        await tx.wait();
-        console.log('Transaction confirmed!');
-
-        showTransactionSuccess();
     } catch (error) {
         console.error('Transaction failed:', error);
-        let errorMessage = 'Transaction failed. ';
-        
-        if (error.code === 4001) {
-            errorMessage += 'You rejected the transaction.';
-        } else if (error.code === -32603) {
-            errorMessage += 'Insufficient USDT balance.';
-        } else if (error.message && error.message.includes('user rejected')) {
-            errorMessage += 'You rejected the transaction.';
-        } else if (error.message && error.message.includes('insufficient funds')) {
-            errorMessage += 'Insufficient BNB for gas fees.';
-        } else {
-            errorMessage += 'Please make sure you have enough USDT and BNB for gas fees.';
-        }
-        
-        showTransactionError(errorMessage);
+        showTransactionError('Failed to initiate transaction. Please make sure MetaMask is connected and try again.');
     }
 }
 
