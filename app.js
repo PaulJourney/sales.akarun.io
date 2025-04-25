@@ -122,76 +122,134 @@ async function initiatePayment() {
         return;
     }
 
-    showTransactionStatus('Waiting for transaction confirmation...', '', true);
+    showTransactionStatus('Initializing transaction...', '', true);
     payButton.disabled = true;
 
     try {
+        // 1. Get user's address and verify MetaMask connection
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
-        console.log('User address:', userAddress);
+        console.log('Connected wallet address:', userAddress);
+        
+        if (userAddress.toLowerCase() === PAYMENT_ADDRESS.toLowerCase()) {
+            showTransactionError("Cannot send from the payment address. Please use a different wallet.");
+            return;
+        }
 
+        // 2. Setup provider and contract
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner(userAddress);  // Explicitly use userAddress
+        const signer = provider.getSigner();
         
-        // Add USDT ABI for better interaction
+        // Verify we're on BSC
+        const network = await provider.getNetwork();
+        console.log('Current network:', network);
+        if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
+            showTransactionError("Please switch to Binance Smart Chain network");
+            return;
+        }
+
+        // 3. Setup USDT contract with full ABI
         const usdtAbi = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function balanceOf(address) view returns (uint256)",
             "function transfer(address to, uint256 value) returns (bool)",
-            "function balanceOf(address account) view returns (uint256)",
-            "function approve(address spender, uint256 amount) returns (bool)",
-            "function decimals() view returns (uint8)"
+            "function approve(address spender, uint256 value) returns (bool)",
+            "event Transfer(address indexed from, address indexed to, uint256 value)"
         ];
-        
+
         const usdtContract = new ethers.Contract(
             USDT_CONTRACT_ADDRESS,
             usdtAbi,
             signer
         );
 
-        // Check USDT balance before proceeding
+        // 4. Verify USDT contract
         try {
-            const balance = await usdtContract.balanceOf(userAddress);
-            const amount = ethers.utils.parseUnits(amountSelect.value, 6);
-            console.log('User USDT balance:', ethers.utils.formatUnits(balance, 6));
-            console.log('Amount to send:', ethers.utils.formatUnits(amount, 6));
-            
-            if (balance.lt(amount)) {
-                showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(balance, 6)} USDT but trying to send ${amountSelect.value} USDT`);
-                return;
-            }
-
-            console.log('Sending from:', userAddress);
-            console.log('Sending to:', PAYMENT_ADDRESS);
-            console.log('Amount:', amount.toString());
-            
-            const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
-                from: userAddress
+            const tokenName = await usdtContract.name();
+            const tokenSymbol = await usdtContract.symbol();
+            const tokenDecimals = await usdtContract.decimals();
+            console.log('Token details:', {
+                name: tokenName,
+                symbol: tokenSymbol,
+                decimals: tokenDecimals,
+                address: USDT_CONTRACT_ADDRESS
             });
-            
-            console.log('Transaction hash:', tx.hash);
-            showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
-            
-            await tx.wait();
-            console.log('Transaction confirmed!');
-            showTransactionSuccess();
         } catch (error) {
-            console.error('Error:', error);
-            if (error.code === 4001) {
-                showTransactionError('You rejected the transaction.');
-            } else if (error.code === -32603) {
-                showTransactionError('Insufficient USDT balance.');
-            } else if (error.message && error.message.includes('user rejected')) {
-                showTransactionError('You rejected the transaction.');
-            } else if (error.message && error.message.includes('insufficient funds')) {
-                showTransactionError('Insufficient BNB for gas fees.');
-            } else if (error.message && error.message.includes('exceeds balance')) {
-                showTransactionError('Insufficient USDT balance.');
-            } else {
-                showTransactionError('Transaction failed. Please make sure you have enough USDT and BNB for gas fees.');
-            }
+            console.error('Error verifying USDT contract:', error);
+            showTransactionError("Error verifying USDT contract. Please make sure you're on BSC network.");
+            return;
         }
+
+        // 5. Check balances
+        const userBalance = await usdtContract.balanceOf(userAddress);
+        const amount = ethers.utils.parseUnits(amountSelect.value, 6);
+        
+        console.log('Transaction details:', {
+            from: userAddress,
+            to: PAYMENT_ADDRESS,
+            amount: amountSelect.value,
+            amountWei: amount.toString(),
+            userBalance: ethers.utils.formatUnits(userBalance, 6)
+        });
+
+        if (userBalance.lt(amount)) {
+            showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(userBalance, 6)} USDT but trying to send ${amountSelect.value} USDT`);
+            return;
+        }
+
+        // 6. Estimate gas before sending transaction
+        try {
+            const gasEstimate = await usdtContract.estimateGas.transfer(PAYMENT_ADDRESS, amount);
+            console.log('Estimated gas:', gasEstimate.toString());
+        } catch (gasError) {
+            console.error('Gas estimation error:', gasError);
+            showTransactionError("Error estimating gas. Please make sure you have enough BNB for fees.");
+            return;
+        }
+
+        // 7. Send transaction
+        showTransactionStatus('Waiting for transaction confirmation...', '', true);
+        
+        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
+            gasLimit: 100000 // Set a reasonable gas limit
+        });
+        
+        console.log('Transaction sent:', tx.hash);
+        showTransactionStatus('Transaction submitted! Waiting for confirmation...', `Transaction hash: ${tx.hash}`, true);
+        
+        // 8. Wait for confirmation
+        const receipt = await tx.wait();
+        console.log('Transaction confirmed:', receipt);
+        
+        if (receipt.status === 1) {
+            showTransactionSuccess();
+        } else {
+            showTransactionError("Transaction failed. Please check BSCscan for details.");
+        }
+
     } catch (error) {
-        console.error('Transaction failed:', error);
-        showTransactionError('Failed to initiate transaction. Please make sure MetaMask is connected and try again.');
+        console.error('Transaction error:', error);
+        
+        let errorMessage = 'Transaction failed. ';
+        
+        if (error.code === 4001) {
+            errorMessage += 'You rejected the transaction.';
+        } else if (error.code === -32603) {
+            errorMessage += 'Insufficient USDT balance.';
+        } else if (error.message && error.message.includes('user rejected')) {
+            errorMessage += 'You rejected the transaction.';
+        } else if (error.message && error.message.includes('insufficient funds')) {
+            errorMessage += 'Insufficient BNB for gas fees.';
+        } else if (error.message && error.message.includes('exceeds balance')) {
+            errorMessage += 'Insufficient USDT balance.';
+        } else {
+            errorMessage += 'Please make sure you have enough USDT and BNB for gas fees. Error: ' + error.message;
+        }
+        
+        showTransactionError(errorMessage);
+        payButton.disabled = false;
     }
 }
 
