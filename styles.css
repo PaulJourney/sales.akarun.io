@@ -110,15 +110,16 @@ select:focus {
 }
 
 .button {
-    padding: 1.25rem;
+    padding: 1rem 1.5rem;
     border: none;
     border-radius: 0.75rem;
     background-color: var(--accent-color);
     color: var(--primary-bg);
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: inline-block;
 }
 
 .button:hover:not(:disabled) {
@@ -221,27 +222,31 @@ code {
 
 .logo-container {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .text-logo {
     color: white;
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
 }
 
 #wallet-section {
     text-align: center;
-    margin-bottom: 2rem;
+    margin: 1.5rem auto;
     padding: 1rem;
     background-color: rgba(243, 186, 47, 0.1);
     border-radius: 0.75rem;
+    width: fit-content;
+    min-width: 300px;
 }
 
 #wallet-status {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     font-size: 0.9rem;
+    text-align: center;
 }
 
 #wallet-status.connected {
@@ -337,9 +342,10 @@ code {
 
 /* Sales Details Link */
 .sales-details-link {
-    display: inline-block;
+    display: block;
     padding: 8px 16px;
     margin: 1rem auto;
+    width: fit-content;
     cursor: pointer;
     color: var(--accent-color);
     font-size: 0.95rem;
