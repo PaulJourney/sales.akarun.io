@@ -90,6 +90,18 @@ select {
     background-size: 1em;
 }
 
+/* Add styling for option elements */
+select option {
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+}
+
+/* Ensure proper contrast when dropdown is open */
+select:focus option {
+    background-color: white;
+    color: black;
+}
+
 select:focus {
     outline: none;
     border-color: var(--accent-color);
