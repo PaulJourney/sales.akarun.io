@@ -21,6 +21,7 @@
                 <span class="text-logo">AKARUN</span>
             </div>
             <h2 data-i18n="title">Family & Friends Sale</h2>
+            <div class="sales-details-link" onclick="openModal()">Sales Details</div>
             <div class="password-form">
                 <input type="password" id="password-input" data-i18n-placeholder="enterPassword" placeholder="Enter access password">
                 <button id="submit-password" class="button" data-i18n="accessSale">Access Sale</button>
@@ -96,6 +97,55 @@
     <footer class="footer">
         © 2025, Akarun.io - All rights reserved
     </footer>
+
+    <!-- Modal -->
+    <div id="salesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <table class="responsive-table">
+                <thead>
+                    <tr>
+                        <th>Round</th>
+                        <th>Raise</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>TGE</th>
+                        <th>Cliff</th>
+                        <th>Vesting</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Round">Family & Friends</td>
+                        <td data-label="Raise">$ 20,000</td>
+                        <td data-label="Price">$ 0.005</td>
+                        <td data-label="Qty">4,000,000</td>
+                        <td data-label="TGE">10%</td>
+                        <td data-label="Cliff">2m</td>
+                        <td data-label="Vesting">4m</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Round">Private Sale</td>
+                        <td data-label="Raise">$ 50,000</td>
+                        <td data-label="Price">$ 0.00693</td>
+                        <td data-label="Qty">7,215,007</td>
+                        <td data-label="TGE">10%</td>
+                        <td data-label="Cliff">2m</td>
+                        <td data-label="Vesting">4m</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Round">Public Sale</td>
+                        <td data-label="Raise">$ 100,000</td>
+                        <td data-label="Price">$ 0.0099</td>
+                        <td data-label="Qty">10,101,010</td>
+                        <td data-label="TGE">20%</td>
+                        <td data-label="Cliff">0m</td>
+                        <td data-label="Vesting">2m</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"
         type="application/javascript">
