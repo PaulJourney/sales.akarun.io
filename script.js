@@ -1,11 +1,13 @@
 // Modal functions
 function openModal() {
-    document.getElementById('salesModal').style.display = 'block';
+    const modal = document.getElementById('salesModal');
+    modal.style.display = 'flex';  // Changed to flex for better centering
     document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
 }
 
 function closeModal() {
-    document.getElementById('salesModal').style.display = 'none';
+    const modal = document.getElementById('salesModal');
+    modal.style.display = 'none';
     document.body.style.overflow = 'auto'; // Restore scrolling
 }
 
