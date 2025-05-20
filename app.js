@@ -343,3 +343,23 @@ async function initializeApp() {
              connectWalletBtn.disabled = false;
         }
     } else {
+         walletStatus.textContent = 'Please install MetaMask';
+         walletStatus.className = 'status-text error';
+         connectWalletBtn.disabled = false;
+         connectWalletBtn.textContent = 'Install MetaMask';
+    }
+
+    if (typeof changeLanguage === 'function') {
+        const savedLang = localStorage.getItem('lang') || 'en';
+        changeLanguage(savedLang);
+         document.querySelectorAll('.language-selector a').forEach(link => {
+            if (link.getAttribute('data-lang') === savedLang) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+         });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
