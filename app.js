@@ -1,16 +1,16 @@
 // BSC Configuration
 const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Nuovo indirizzo per i pagamenti effettivi
+const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc";
 const BSC_CHAIN_ID = "0x38";
-const TOKEN_PRICE = 0.006; // Prezzo del token aggiornato per i calcoli
+const TOKEN_PRICE = 0.006;
 
 // Password Configuration
-const CORRECT_PASSWORD = 'Priv4t3'; // Nuova password di accesso
+const CORRECT_PASSWORD = 'Priv4t3';
 
-// Limiti di contribuzione
+// Contribution Limits
 const MIN_CONTRIBUTION_USD = 1000;
 const MAX_CONTRIBUTION_USD = 30000;
-const TEST_CONTRIBUTION_USD = 1; // Importo per il test
+const TEST_CONTRIBUTION_USD = 1;
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -121,18 +121,12 @@ function validatePassword() {
 
 // Update token amount based on selected USD amount
 function updateTokenAmount() {
-    const selectedAmount = parseFloat(amountSelect.value); // Usa parseFloat per importi con decimali (anche se qui sono interi)
-    if (!isNaN(selectedAmount) && selectedAmount > 0) { // Controlla che sia un numero valido e maggiore di 0
+    const selectedAmount = parseFloat(amountSelect.value);
+    if (!isNaN(selectedAmount) && selectedAmount > 0) {
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
-        tokenAmount.textContent = tokens.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }); // Formatta per evitare troppi decimali
+        tokenAmount.textContent = tokens.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
         payButton.disabled = false;
-
-        // Potenziale validazione visiva qui (opzionale, la facciamo nella logica di pagamento)
-        // if (selectedAmount !== TEST_CONTRIBUTION_USD && selectedAmount < MIN_CONTRIBUTION_USD) {
-        //     // Mostra un avviso visivo all'utente
-        // }
-
     } else {
         tokenDisplay.classList.add('hidden');
         payButton.disabled = true;
@@ -228,11 +222,11 @@ async function initiatePayment() {
                 "function balanceOf(address) view returns (uint256)",
                 "function decimals() view returns (uint8)"
             ],
-            provider.getSigner() // Usa il signer per inviare transazioni
+            provider.getSigner()
         );
 
         // 4. Get amount to send (in USD)
-        const selectedAmountUSD = parseFloat(amountSelect.value); // Usa parseFloat
+        const selectedAmountUSD = parseFloat(amountSelect.value);
         if (isNaN(selectedAmountUSD) || selectedAmountUSD <= 0) {
              showTransactionError("Please select a valid amount");
              payButton.disabled = false;
@@ -248,10 +242,8 @@ async function initiatePayment() {
 
 
         // Convert amount to send from USD to USDT units (assuming 1 USDT = 1 USD and 18 decimals)
-        // Recupera i decimali esatti dal contratto USDT
         const decimals = await usdtContract.decimals();
-        // Converti l'importo USD selezionato (es. 1, 5000) in BigNumber scalato per i decimali di USDT.
-        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD.toString(), decimals); // Converte selectedAmountUSD in stringa per parseUnits
+        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD.toString(), decimals);
 
 
         // 5. Check user's USDT balance (con l'importo corretto in unità USDT)
@@ -265,9 +257,8 @@ async function initiatePayment() {
         // 6. Send transaction
         showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
 
-        // Usiamo l'indirizzo di pagamento aggiornato (PAYMENT_ADDRESS) e l'importo corretto in unità USDT
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amountToSendInUsdtUnits, {
-            gasLimit: 100000 // Potrebbe essere necessario aggiustare il gas limit in base al network e alla congestione
+            gasLimit: 100000
         });
 
         showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
@@ -280,10 +271,9 @@ async function initiatePayment() {
 
     } catch (error) {
         console.error('Transaction failed:', error);
-        // Mostra un messaggio di errore più specifico se disponibile nell'oggetto errore
         const errorMessage = error.message || 'Unknown error';
         showTransactionError(`Transaction failed: ${errorMessage}`);
-        payButton.disabled = false; // Riabilita il pulsante dopo un errore
+        payButton.disabled = false;
     }
 }
 
@@ -304,9 +294,9 @@ function showTransactionSuccess() {
     transactionStatus.classList.remove('hidden', 'loading', 'error');
     transactionStatus.classList.add('success');
     statusMessage.textContent = 'Transaction successful!';
-    statusDetails.textContent = 'Your tokens will be sent to your wallet shortly.'; // Messaggio generico
+    statusDetails.textContent = 'Your tokens will be sent to your wallet shortly.';
     loadingSpinner.classList.add('hidden');
-    payButton.disabled = true; // Disabilita il pulsante dopo il successo
+    payButton.disabled = true;
 }
 
 function showTransactionError(message) {
@@ -315,51 +305,32 @@ function showTransactionError(message) {
     statusMessage.textContent = 'Transaction failed:';
     statusDetails.textContent = message;
     loadingSpinner.classList.add('hidden');
-    payButton.disabled = false; // Riabilita il pulsante dopo un errore
+    payButton.disabled = false;
 }
 
 // Language switching logic (dal file translations.js, se presente e caricato prima)
-// Queste funzioni potrebbero dipendere dal caricamento di translations.js e dalla struttura di localizzazione
-// Se non funzionano, potrebbe essere necessario verificarle nel contesto di translations.js e index.html
 document.querySelectorAll('.language-selector a').forEach(link => {
     link.addEventListener('click', function(event) {
         event.preventDefault();
         const lang = this.getAttribute('data-lang');
         changeLanguage(lang);
-        // Aggiorna la classe 'active'
         document.querySelectorAll('.language-selector a').forEach(l => l.classList.remove('active'));
         this.classList.add('active');
     });
 });
 
-// Funzione per cambiare lingua (da translations.js)
-// Assicurati che questa funzione sia definita e disponibile globalmente tramite translations.js
-// if (typeof changeLanguage === 'function') {
-//     // Esegui il cambio lingua iniziale o altro setup
-//     changeLanguage('en'); // Esempio: imposta l'inglese come default
-// } else {
-//     console.error("La funzione changeLanguage non è disponibile. Assicurati che translations.js sia caricato correttamente.");
-// }
-
-// Nota: La logica di cambio lingua sembra dipendere da una funzione 'changeLanguage' definita in translations.js.
-// Assicurati che translations.js sia caricato correttamente PRIMA di app.js in index.html.
-// L'index.html che mi hai mostrato carica translations.js prima di app.js, quindi dovrebbe essere ok.
-
 // Inizializza lo stato del wallet e della rete all'apertura della pagina
 async function initializeApp() {
-    // Verifica la rete all'avvio
     await checkNetwork();
 
-    // Controlla se MetaMask è già connesso all'avvio
     if (typeof window.ethereum !== 'undefined') {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (accounts.length > 0) {
                 handleAccountsChanged(accounts);
             } else {
-                 // Utente non connesso o account bloccato, mostra lo stato di disconnessione
                  walletStatus.textContent = 'Please connect your MetaMask wallet';
-                 walletStatus.className = 'status-text'; // Rimuovi classi di stato precedenti
+                 walletStatus.className = 'status-text';
                  saleSection.classList.add('hidden');
                  connectWalletBtn.textContent = 'Connect MetaMask';
                  connectWalletBtn.disabled = false;
@@ -372,27 +343,3 @@ async function initializeApp() {
              connectWalletBtn.disabled = false;
         }
     } else {
-         walletStatus.textContent = 'Please install MetaMask';
-         walletStatus.className = 'status-text error';
-         connectWalletBtn.disabled = false; // Abilita il pulsante per mostrare il messaggio
-         connectWalletBtn.textContent = 'Install MetaMask'; // Cambia testo pulsante
-    }
-
-     // Inizializza la lingua (dipende da translations.js)
-    if (typeof changeLanguage === 'function') {
-        // Cerca la lingua salvata in localStorage o usa il default
-        const savedLang = localStorage.getItem('lang') || 'en'; // 'en' come default se non c'è nulla in localStorage
-        changeLanguage(savedLang);
-         // Imposta la classe 'active' sul selettore lingua corretto
-         document.querySelectorAll('.language-selector a').forEach(link => {
-            if (link.getAttribute('data-lang') === savedLang) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-         });
-    }
-}
-
-// Esegui l'inizializzazione quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', initializeApp);
