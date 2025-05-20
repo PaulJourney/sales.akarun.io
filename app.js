@@ -1,6 +1,6 @@
 // BSC Configuration
 const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // Indirizzo del contratto USDT
-const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Indirizzo del wallet di destinazione
+const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Indirizzo del wallet di destinazione (aggiornato)
 const BSC_CHAIN_ID = "0x38"; // Chain ID per Binance Smart Chain Mainnet
 const TOKEN_PRICE = 0.006; // Prezzo del token in USDT (aggiornato)
 
