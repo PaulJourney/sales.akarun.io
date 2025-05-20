@@ -22,9 +22,9 @@ const translations = {
         title: "Vendita Family & Friends",
         enterPassword: "Inserisci la password di accesso",
         accessSale: "Accedi alla Vendita",
-        networkInfo: "Vendita su Binance Smart Chain (BSC)",
+        networkInfo: "Questa vendita si svolge su Binance Smart Chain (BSC)",
         minMax: "Minimo $2,000 - Massimo $30,000", // Modificato qui
-        paymentInfo: "Pagamenti in USDT (BEP20) su BSC",
+        paymentInfo: "Pagamenti in USDT (BEP20) su Binance Smart Chain.",
         selectAmount: "Seleziona l'Importo del Contributo:",
         chooseAmount: "Scegli l'importo...",
         youWillReceive: "Riceverai:",
@@ -95,3 +95,4 @@ const translations = {
         requirement4: "Ilang BNB para sa gas fees"
     }
 };
+
