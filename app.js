@@ -1,11 +1,11 @@
 // BSC Configuration
-const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // Indirizzo del contratto USDT
-const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Indirizzo del wallet di destinazione (aggiornato)
-const BSC_CHAIN_ID = "0x38"; // Chain ID per Binance Smart Chain Mainnet
-const TOKEN_PRICE = 0.006; // Prezzo del token in USDT (aggiornato)
+const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
+const BSC_CHAIN_ID = "0x38";
+const TOKEN_PRICE = 0.005;
 
 // Password Configuration
-const CORRECT_PASSWORD = 'Priv4t3'; // Password di accesso (aggiornata)
+const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -81,21 +81,21 @@ async function connectWallet() {
     }
 
     connectWalletBtn.disabled = true;
-    connectWalletBtn.textContent = 'Connecting...'; // Corretto qui
+    connectWalletBtn.textContent = 'Connecting...';
 
     try {
         // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-
+        
         // Check if we're on the correct network
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (chainId !== BSC_CHAIN_ID) {
             await switchToBSC();
         }
-
+        
         handleAccountsChanged(accounts);
     } catch (error) {
-        console.error('Error connecting wallet:', error); // Corretto qui
+        console.error('Error connecting wallet:', error);
         walletStatus.textContent = 'Failed to connect wallet';
         walletStatus.className = 'status-text error';
         connectWalletBtn.disabled = false;
@@ -108,9 +108,6 @@ function validatePassword() {
     if (passwordInput.value === CORRECT_PASSWORD) {
         passwordSection.classList.add('hidden');
         mainContent.classList.remove('hidden');
-        // Chiama la funzione di traduzione una volta che l'utente ha avuto accesso
-        const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-        changeLanguage(savedLang);
     } else {
         passwordError.textContent = 'Incorrect password. Please try again.';
         passwordInput.value = '';
@@ -120,7 +117,7 @@ function validatePassword() {
 // Update token amount based on selected USD amount
 function updateTokenAmount() {
     const selectedAmount = parseInt(amountSelect.value);
-    if (selectedAmount && TOKEN_PRICE > 0) { // Aggiunto controllo per evitare divisione per zero
+    if (selectedAmount) {
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
         tokenAmount.textContent = tokens.toLocaleString();
@@ -194,14 +191,14 @@ async function initiatePayment() {
         return;
     }
 
-    showTransactionStatus('Connecting to wallet...', '', true); // Corretto qui
+    showTransactionStatus('Connecting to wallet...', '', true);
     payButton.disabled = true;
 
     try {
         // 1. Connect to wallet and verify network
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const network = await provider.getNetwork();
-
+        
         if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
             await switchToBSC();
             showTransactionError("Please switch to Binance Smart Chain and try again");
@@ -241,16 +238,16 @@ async function initiatePayment() {
         }
 
         // 6. Send transaction
-        showTransactionStatus('Please confirm the transaction in MetaMask...', '', true); // Corretto qui
-
+        showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
+        
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
             gasLimit: 100000
         });
 
-        showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true); // Corretto qui
-
+        showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
+        
         const receipt = await tx.wait();
-
+        
         if (receipt.status === 1) {
             showTransactionSuccess();
         } else {
@@ -258,8 +255,8 @@ async function initiatePayment() {
         }
 
     } catch (error) {
-        console.error('Transaction error:', error); // Corretto qui
-
+        console.error('Transaction error:', error);
+        
         if (error.code === 4001) {
             showTransactionError('You rejected the transaction');
         } else if (error.message.includes('user rejected')) {
@@ -287,10 +284,10 @@ function showTransactionStatus(message, details = '', loading = false) {
 // Show transaction success
 function showTransactionSuccess() {
     showTransactionStatus(
-        'Transaction successful!', // Rimosso carattere speciale e corretto stringa
-        'Your tokens will be distributed according to the vesting schedule:\n' + // Corretto stringa
-        '• 10% at TGE\n' + // Corretto stringa
-        '• 90% over 4 months', // Corretto stringa
+        '🎉 Transaction successful!',
+        'Your tokens will be distributed according to the vesting schedule:\n' +
+        '• 10% at TGE\n' +
+        '• 90% over 4 months',
         false
     );
     statusMessage.style.color = 'var(--success-color)';
@@ -298,7 +295,7 @@ function showTransactionSuccess() {
 
 // Show transaction error
 function showTransactionError(message) {
-    showTransactionStatus('Error: ' + message, '', false); // Semplificato messaggio e corretto stringa
+    showTransactionStatus('❌ ' + message, '', false);
     statusMessage.style.color = 'var(--error-color)';
     payButton.disabled = false;
 }
@@ -306,13 +303,13 @@ function showTransactionError(message) {
 // Funzione per cambiare lingua
 function changeLanguage(lang) {
     if (!translations || !translations[lang]) {
-        console.error('Translations not found for language:', lang); // Corretto qui
+        console.error('Translations not found for language:', lang);
         return;
     }
 
     // Salva la lingua selezionata
     localStorage.setItem('selectedLanguage', lang);
-
+    
     // Aggiorna la classe active sul selettore della lingua
     document.querySelectorAll('.language-selector a').forEach(el => {
         el.classList.remove('active');
@@ -324,7 +321,7 @@ function changeLanguage(lang) {
     // Aggiorna tutti gli elementi con attributo data-i18n
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
-        if (translations[lang] && translations[lang][key]) { // Aggiunto controllo null/undefined
+        if (translations[lang][key]) {
             if (element.tagName === 'OPTION') {
                 element.textContent = translations[lang][key];
             } else {
@@ -336,15 +333,13 @@ function changeLanguage(lang) {
     // Aggiorna i placeholder
     document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
-         if (translations[lang] && translations[lang][key]) { // Aggiunto controllo null/undefined
+        if (translations[lang][key]) {
             element.placeholder = translations[lang][key];
         }
     });
 
     // Aggiorna il titolo della pagina
-    if (translations[lang] && translations[lang].title) { // Aggiunto controllo null/undefined
-         document.title = `Akarun Token - ${translations[lang].title}`;
-    }
+    document.title = `Akarun Token - ${translations[lang].title}`;
 }
 
 // Aggiungi event listener per i link delle lingue
@@ -352,4 +347,18 @@ document.querySelectorAll('.language-selector a').forEach(el => {
     el.addEventListener('click', (e) => {
         e.preventDefault();
         const lang = e.target.getAttribute('data-lang');
-        change
+        changeLanguage(lang);
+    });
+});
+
+// Imposta la lingua iniziale quando il DOM è completamente caricato
+window.addEventListener('DOMContentLoaded', () => {
+    // Verifica che le traduzioni siano disponibili
+    if (typeof translations === 'undefined') {
+        console.error('Translations not loaded!');
+        return;
+    }
+
+    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+    changeLanguage(savedLang);
+});
