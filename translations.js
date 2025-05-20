@@ -94,4 +94,26 @@ const translations = {
         requirement3: "Sapat na USDT (BEP20) balance",
         requirement4: "Ilang BNB para sa gas fees"
     }
-}; 
+};
+
+// Funzione per cambiare lingua
+function changeLanguage(lang) {
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            element.textContent = translations[lang][key];
+        }
+    });
+
+    const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+    placeholders.forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key]) {
+            element.placeholder = translations[lang][key];
+        }
+    });
+
+    // Salva la lingua selezionata in localStorage
+    localStorage.setItem('lang', lang);
+}
