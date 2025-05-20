@@ -5,7 +5,7 @@ const translations = {
         accessSale: "Access Sale",
         networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
         minMax: "Minimum $2,000 - Maximum $30,000", // Modificato qui
-        paymentInfo: "Payments in USDT (BEP20) on BSC to the following address:",
+        paymentInfo: "Payments in USDT (BEP20) on Binance Smart Chain.",
         selectAmount: "Select Contribution Amount:",
         chooseAmount: "Choose amount...",
         youWillReceive: "You will receive:",
@@ -22,9 +22,9 @@ const translations = {
         title: "Vendita Family & Friends",
         enterPassword: "Inserisci la password di accesso",
         accessSale: "Accedi alla Vendita",
-        networkInfo: "Questa vendita si svolge su Binance Smart Chain (BSC)",
+        networkInfo: "Vendita su Binance Smart Chain (BSC)",
         minMax: "Minimo $2,000 - Massimo $30,000", // Modificato qui
-        paymentInfo: "Pagamenti in USDT (BEP20) su BSC all'indirizzo:",
+        paymentInfo: "Pagamenti in USDT (BEP20) su BSC",
         selectAmount: "Seleziona l'Importo del Contributo:",
         chooseAmount: "Scegli l'importo...",
         youWillReceive: "Riceverai:",
