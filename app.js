@@ -1,11 +1,11 @@
 // BSC Configuration
 const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Nuovo indirizzo per i pagamenti
+const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Nuovo indirizzo per i pagamenti effettivi
 const BSC_CHAIN_ID = "0x38";
-const TOKEN_PRICE = 0.006; // Prezzo del token aggiornato
+const TOKEN_PRICE = 0.006; // Prezzo del token aggiornato per i calcoli
 
 // Password Configuration
-const CORRECT_PASSWORD = 'Priv4t3'; // Nuova password
+const CORRECT_PASSWORD = 'Priv4t3'; // Nuova password di accesso
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -228,26 +228,10 @@ async function initiatePayment() {
             return;
         }
 
-        // Convert USD amount to token amount, then to contract's unit (considering decimals)
-        // Nota: Qui il calcolo si basa su TOKEN_PRICE definito all'inizio del file
-        const tokenAmountToSend = parseFloat(selectedAmountUSD) / TOKEN_PRICE;
-
-        // Per ottenere l'importo corretto in USDT (che ha 18 decimali come la maggior parte dei token ERC20/BEP20),
-        // dobbiamo parseare l'importo USD in base ai decimali di USDT.
-        // Assumendo che USDT (BEP20) abbia 18 decimali, convertiamo l'importo USD
-        // prima in token equivalenti e poi scaliamo per i decimali di USDT.
-        // Questo è un po' confuso, solitamente si converte l'importo USD direttamente in USDT.
-        // Rifacciamo il calcolo assumendo che l'utente paghi in USDT l'equivalente in USD.
-        // Quindi, se selectedAmountUSD è 200, vogliamo inviare 200 USDT.
-        // Dobbiamo parseare questo valore in base ai decimali di USDT.
-
-        // Correggiamo la logica di conversione: vogliamo inviare l'equivalente in USDT dell'importo in USD selezionato.
-        // L'importo che l'utente SELEZIONA (es. $200, $500) è già l'importo IN USD che intende pagare.
-        // Il contratto USDT richiede l'importo in unità più piccole (wei, considerando i decimali).
-        // Assumendo USDT BEP20 ha 18 decimali (lo verifichiamo con usdtContract.decimals()),
-        // dobbiamo convertire l'importo USD selezionato (es. 200) in BigNumber scalato per 18 decimali.
-
-        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD, decimals); // Usiamo selectedAmountUSD direttamente
+        // Convert amount to send from USD to USDT units (assuming 1 USDT = 1 USD and 18 decimals)
+        // Questo è il modo corretto per preparare l'importo per il contratto USDT (BEP20).
+        const decimals = await usdtContract.decimals(); // Recupera i decimali esatti dal contratto USDT
+        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD, decimals); // Usa selectedAmountUSD e i decimali effettivi di USDT
 
         // 5. Check user's USDT balance (con l'importo corretto in unità USDT)
         const balance = await usdtContract.balanceOf(userAddress);
@@ -262,7 +246,7 @@ async function initiatePayment() {
 
         // Usiamo l'indirizzo di pagamento aggiornato (PAYMENT_ADDRESS) e l'importo corretto in unità USDT
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amountToSendInUsdtUnits, {
-            gasLimit: 100000 // Potrebbe essere necessario aggiustare il gas limit
+            gasLimit: 100000 // Potrebbe essere necessario aggiustare il gas limit in base al network e alla congestione
         });
 
         showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
@@ -275,8 +259,10 @@ async function initiatePayment() {
 
     } catch (error) {
         console.error('Transaction failed:', error);
-        showTransactionError(`Transaction failed: ${error.message}`);
-        payButton.disabled = false; // Riabilita il pulsante se la transazione fallisce prima dell'invio
+        // Mostra un messaggio di errore più specifico se disponibile nell'oggetto errore
+        const errorMessage = error.message || 'Unknown error';
+        showTransactionError(`Transaction failed: ${errorMessage}`);
+        payButton.disabled = false; // Riabilita il pulsante dopo un errore
     }
 }
 
@@ -370,22 +356,3 @@ async function initializeApp() {
          connectWalletBtn.disabled = false; // Abilita il pulsante per mostrare il messaggio
          connectWalletBtn.textContent = 'Install MetaMask'; // Cambia testo pulsante
     }
-
-     // Inizializza la lingua (dipende da translations.js)
-    if (typeof changeLanguage === 'function') {
-        // Cerca la lingua salvata in localStorage o usa il default
-        const savedLang = localStorage.getItem('lang') || 'en'; // 'en' come default se non c'è nulla in localStorage
-        changeLanguage(savedLang);
-         // Imposta la classe 'active' sul selettore lingua corretto
-         document.querySelectorAll('.language-selector a').forEach(link => {
-            if (link.getAttribute('data-lang') === savedLang) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-         });
-    }
-}
-
-// Esegui l'inizializzazione quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', initializeApp);
