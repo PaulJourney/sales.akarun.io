@@ -4,8 +4,8 @@ const translations = {
         enterPassword: "Enter access password",
         accessSale: "Access Sale",
         networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
-        minMax: "The minimum contribution is $200 and the maximum contribution per wallet is $2,000.",
-        paymentInfo: "Payments must be made in USDT (BEP20) on Binance Smart Chain to the following address:",
+        minMax: "Minimum $2,000 - Maximum $30,000", // Modificato qui
+        paymentInfo: "Payments in USDT (BEP20) on BSC to the following address:",
         selectAmount: "Select Contribution Amount:",
         chooseAmount: "Choose amount...",
         youWillReceive: "You will receive:",
@@ -23,8 +23,8 @@ const translations = {
         enterPassword: "Inserisci la password di accesso",
         accessSale: "Accedi alla Vendita",
         networkInfo: "Questa vendita si svolge su Binance Smart Chain (BSC)",
-        minMax: "Il contributo minimo è di $200 e il massimo per wallet è di $2,000.",
-        paymentInfo: "I pagamenti devono essere effettuati in USDT (BEP20) su Binance Smart Chain al seguente indirizzo:",
+        minMax: "Minimo $2,000 - Massimo $30,000", // Modificato qui
+        paymentInfo: "Pagamenti in USDT (BEP20) su BSC all'indirizzo:",
         selectAmount: "Seleziona l'Importo del Contributo:",
         chooseAmount: "Scegli l'importo...",
         youWillReceive: "Riceverai:",
@@ -42,7 +42,7 @@ const translations = {
         enterPassword: "Ingresa la contraseña de acceso",
         accessSale: "Acceder a la Venta",
         networkInfo: "Esta venta se realiza en Binance Smart Chain (BSC)",
-        minMax: "La contribución mínima es de $200 y la máxima por billetera es de $2,000.",
+        minMax: "Mínimo $2,000 - Máximo $30,000", // Modificato qui
         paymentInfo: "Los pagos deben realizarse en USDT (BEP20) en Binance Smart Chain a la siguiente dirección:",
         selectAmount: "Selecciona el Monto de Contribución:",
         chooseAmount: "Elige el monto...",
@@ -61,7 +61,7 @@ const translations = {
         enterPassword: "Erişim şifresini girin",
         accessSale: "Satışa Eriş",
         networkInfo: "Bu satış Binance Smart Chain (BSC) üzerinde gerçekleştirilmektedir",
-        minMax: "Minimum katkı $200 ve cüzdan başına maksimum katkı $2,000'dir.",
+        minMax: "Minimum $2,000 - Maksimum $30,000", // Modificato qui
         paymentInfo: "Ödemeler Binance Smart Chain üzerinde USDT (BEP20) ile aşağıdaki adrese yapılmalıdır:",
         selectAmount: "Katkı Miktarını Seçin:",
         chooseAmount: "Miktar seçin...",
@@ -80,7 +80,7 @@ const translations = {
         enterPassword: "Ilagay ang access password",
         accessSale: "Access ang Sale",
         networkInfo: "Ang sale na ito ay isinasagawa sa Binance Smart Chain (BSC)",
-        minMax: "Ang minimum na kontribusyon ay $200 at ang maximum na kontribusyon bawat wallet ay $2,000.",
+        minMax: "Minimum $2,000 - Maximum $30,000", // Modificato qui
         paymentInfo: "Ang mga pagbabayad ay dapat gawin sa USDT (BEP20) sa Binance Smart Chain sa sumusunod na address:",
         selectAmount: "Piliin ang Halaga ng Kontribusyon:",
         chooseAmount: "Pumili ng halaga...",
@@ -95,25 +95,3 @@ const translations = {
         requirement4: "Ilang BNB para sa gas fees"
     }
 };
-
-// Funzione per cambiare lingua
-function changeLanguage(lang) {
-    const elements = document.querySelectorAll('[data-i18n]');
-    elements.forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (translations[lang] && translations[lang][key]) {
-            element.textContent = translations[lang][key];
-        }
-    });
-
-    const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
-    placeholders.forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[lang] && translations[lang][key]) {
-            element.placeholder = translations[lang][key];
-        }
-    });
-
-    // Salva la lingua selezionata in localStorage
-    localStorage.setItem('lang', lang);
-}
