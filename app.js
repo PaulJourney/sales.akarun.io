@@ -1,16 +1,11 @@
 // BSC Configuration
 const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc";
+const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
 const BSC_CHAIN_ID = "0x38";
-const TOKEN_PRICE = 0.006;
+const TOKEN_PRICE = 0.005;
 
 // Password Configuration
-const CORRECT_PASSWORD = 'Priv4t3';
-
-// Contribution Limits
-const MIN_CONTRIBUTION_USD = 1000;
-const MAX_CONTRIBUTION_USD = 30000;
-const TEST_CONTRIBUTION_USD = 1;
+const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -91,13 +86,13 @@ async function connectWallet() {
     try {
         // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-
+        
         // Check if we're on the correct network
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (chainId !== BSC_CHAIN_ID) {
             await switchToBSC();
         }
-
+        
         handleAccountsChanged(accounts);
     } catch (error) {
         console.error('Error connecting wallet:', error);
@@ -121,11 +116,11 @@ function validatePassword() {
 
 // Update token amount based on selected USD amount
 function updateTokenAmount() {
-    const selectedAmount = parseFloat(amountSelect.value);
-    if (!isNaN(selectedAmount) && selectedAmount > 0) {
+    const selectedAmount = parseInt(amountSelect.value);
+    if (selectedAmount) {
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
-        tokenAmount.textContent = tokens.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        tokenAmount.textContent = tokens.toLocaleString();
         payButton.disabled = false;
     } else {
         tokenDisplay.classList.add('hidden');
@@ -203,7 +198,7 @@ async function initiatePayment() {
         // 1. Connect to wallet and verify network
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const network = await provider.getNetwork();
-
+        
         if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
             await switchToBSC();
             showTransactionError("Please switch to Binance Smart Chain and try again");
@@ -225,62 +220,49 @@ async function initiatePayment() {
             provider.getSigner()
         );
 
-        // 4. Get amount to send (in USD)
-        const selectedAmountUSD = parseFloat(amountSelect.value);
-        if (isNaN(selectedAmountUSD) || selectedAmountUSD <= 0) {
-             showTransactionError("Please select a valid amount");
-             payButton.disabled = false;
-             return;
-        }
-
-        // Validazione dei limiti di contribuzione
-        if (selectedAmountUSD !== TEST_CONTRIBUTION_USD && (selectedAmountUSD < MIN_CONTRIBUTION_USD || selectedAmountUSD > MAX_CONTRIBUTION_USD)) {
-            showTransactionError(`Contribution must be between $${MIN_CONTRIBUTION_USD} and $${MAX_CONTRIBUTION_USD}, or the $${TEST_CONTRIBUTION_USD} test amount.`);
-            payButton.disabled = false;
+        // 4. Get amount to send
+        const selectedAmount = amountSelect.value;
+        if (!selectedAmount) {
+            showTransactionError("Please select an amount");
             return;
         }
 
-
-        // Convert amount to send from USD to USDT units (assuming 1 USDT = 1 USD and 18 decimals)
-        const decimals = await usdtContract.decimals();
-        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD.toString(), decimals);
-
-
-        // 5. Check user's USDT balance (con l'importo corretto in unità USDT)
+        // 5. Check user's USDT balance
         const balance = await usdtContract.balanceOf(userAddress);
+        const decimals = await usdtContract.decimals();
+        const amount = ethers.utils.parseUnits(selectedAmount, decimals);
 
-        if (balance.lt(amountToSendInUsdtUnits)) {
+        if (balance.lt(amount)) {
             showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(balance, decimals)} USDT`);
             return;
         }
 
         // 6. Send transaction
         showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
-
-        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amountToSendInUsdtUnits, {
+        
+        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
             gasLimit: 100000
         });
 
         showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
-
+        
         const receipt = await tx.wait();
-
-        // Transaction successful
-        console.log("Transaction successful:", receipt);
-        showTransactionSuccess();
-
+        
+        if (receipt.status === 1) {
+            showTransactionSuccess();
+        } else {
+            showTransactionError("Transaction failed");
+        }
     } catch (error) {
-        console.error('Transaction failed:', error);
-        const errorMessage = error.message || 'Unknown error';
-        showTransactionError(`Transaction failed: ${errorMessage}`);
+        console.error("Payment error:", error);
+        showTransactionError(error.message || "Transaction failed");
+    } finally {
         payButton.disabled = false;
     }
 }
 
-// Helper functions for transaction status
 function showTransactionStatus(message, details = '', loading = false) {
-    transactionStatus.classList.remove('hidden', 'success', 'error');
-    transactionStatus.classList.add('loading');
+    transactionStatus.classList.remove('hidden');
     statusMessage.textContent = message;
     statusDetails.textContent = details;
     if (loading) {
@@ -291,75 +273,36 @@ function showTransactionStatus(message, details = '', loading = false) {
 }
 
 function showTransactionSuccess() {
-    transactionStatus.classList.remove('hidden', 'loading', 'error');
-    transactionStatus.classList.add('success');
-    statusMessage.textContent = 'Transaction successful!';
-    statusDetails.textContent = 'Your tokens will be sent to your wallet shortly.';
-    loadingSpinner.classList.add('hidden');
-    payButton.disabled = true;
+    showTransactionStatus('Transaction successful!', '', false);
+    setTimeout(() => {
+        transactionStatus.classList.add('hidden');
+    }, 5000);
 }
 
 function showTransactionError(message) {
-    transactionStatus.classList.remove('hidden', 'loading', 'success');
-    transactionStatus.classList.add('error');
-    statusMessage.textContent = 'Transaction failed:';
-    statusDetails.textContent = message;
-    loadingSpinner.classList.add('hidden');
-    payButton.disabled = false;
+    showTransactionStatus(message, '', false);
+    setTimeout(() => {
+        transactionStatus.classList.add('hidden');
+    }, 5000);
 }
 
-// Language switching logic (dal file translations.js, se presente e caricato prima)
-document.querySelectorAll('.language-selector a').forEach(link => {
-    link.addEventListener('click', function(event) {
-        event.preventDefault();
-        const lang = this.getAttribute('data-lang');
-        changeLanguage(lang);
-        document.querySelectorAll('.language-selector a').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
+function changeLanguage(lang) {
+    document.querySelectorAll('[data-lang]').forEach(el => {
+        el.classList.remove('active');
     });
-});
-
-// Inizializza lo stato del wallet e della rete all'apertura della pagina
-async function initializeApp() {
-    await checkNetwork();
-
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (accounts.length > 0) {
-                handleAccountsChanged(accounts);
-            } else {
-                 walletStatus.textContent = 'Please connect your MetaMask wallet';
-                 walletStatus.className = 'status-text';
-                 saleSection.classList.add('hidden');
-                 connectWalletBtn.textContent = 'Connect MetaMask';
-                 connectWalletBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error("Error checking initial accounts:", error);
-             walletStatus.textContent = 'Could not check wallet status';
-             walletStatus.className = 'status-text error';
-             connectWalletBtn.textContent = 'Connect MetaMask';
-             connectWalletBtn.disabled = false;
+    document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+    
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+            el.textContent = translations[lang][key];
         }
-    } else {
-         walletStatus.textContent = 'Please install MetaMask';
-         walletStatus.className = 'status-text error';
-         connectWalletBtn.disabled = false;
-         connectWalletBtn.textContent = 'Install MetaMask';
-    }
-
-    if (typeof changeLanguage === 'function') {
-        const savedLang = localStorage.getItem('lang') || 'en';
-        changeLanguage(savedLang);
-         document.querySelectorAll('.language-selector a').forEach(link => {
-            if (link.getAttribute('data-lang') === savedLang) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-         });
-    }
+    });
+    
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang][key]) {
+            el.placeholder = translations[lang][key];
+        }
+    });
 }
-
-document.addEventListener('DOMContentLoaded', initializeApp);
