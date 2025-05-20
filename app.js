@@ -1,11 +1,11 @@
 // BSC Configuration
-const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
-const BSC_CHAIN_ID = "0x38";
-const TOKEN_PRICE = 0.005;
+const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // Indirizzo del contratto USDT
+const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Indirizzo del wallet di destinazione
+const BSC_CHAIN_ID = "0x38"; // Chain ID per Binance Smart Chain Mainnet
+const TOKEN_PRICE = 0.006; // Prezzo del token in USDT (aggiornato)
 
 // Password Configuration
-const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
+const CORRECT_PASSWORD = 'Priv4t3'; // Password di accesso (aggiornata)
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -81,7 +81,7 @@ async function connectWallet() {
     }
 
     connectWalletBtn.disabled = true;
-    connectWalletBtn.textContent = 'Connecting...';
+    connectWalletBtn.textContent = 'Connecting...\';
 
     try {
         // Request account access
@@ -108,6 +108,9 @@ function validatePassword() {
     if (passwordInput.value === CORRECT_PASSWORD) {
         passwordSection.classList.add('hidden');
         mainContent.classList.remove('hidden');
+        // Chiama la funzione di traduzione una volta che l'utente ha avuto accesso
+        const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+        changeLanguage(savedLang);
     } else {
         passwordError.textContent = 'Incorrect password. Please try again.';
         passwordInput.value = '';
@@ -117,7 +120,7 @@ function validatePassword() {
 // Update token amount based on selected USD amount
 function updateTokenAmount() {
     const selectedAmount = parseInt(amountSelect.value);
-    if (selectedAmount) {
+    if (selectedAmount && TOKEN_PRICE > 0) { // Aggiunto controllo per evitare divisione per zero
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
         tokenAmount.textContent = tokens.toLocaleString();
@@ -191,7 +194,7 @@ async function initiatePayment() {
         return;
     }
 
-    showTransactionStatus('Connecting to wallet...', '', true);
+    showTransactionStatus('Connecting to wallet...\', \'\', true);
     payButton.disabled = true;
 
     try {
@@ -205,7 +208,7 @@ async function initiatePayment() {
             return;
         }
 
-        // 2. Get user's address
+        // 2. Get user\'s address
         const accounts = await provider.send("eth_requestAccounts", []);
         const userAddress = accounts[0];
 
@@ -227,7 +230,7 @@ async function initiatePayment() {
             return;
         }
 
-        // 5. Check user's USDT balance
+        // 5. Check user\'s USDT balance
         const balance = await usdtContract.balanceOf(userAddress);
         const decimals = await usdtContract.decimals();
         const amount = ethers.utils.parseUnits(selectedAmount, decimals);
@@ -238,71 +241,132 @@ async function initiatePayment() {
         }
 
         // 6. Send transaction
-        showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
+        showTransactionStatus('Please confirm the transaction in MetaMask...\', \'\', true);
         
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
             gasLimit: 100000
         });
 
-        showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
+        showTransactionStatus('Transaction submitted, waiting for confirmation...\', `Hash: ${tx.hash}`, true);
         
         const receipt = await tx.wait();
         
         if (receipt.status === 1) {
             showTransactionSuccess();
         } else {
-            showTransactionError("Transaction failed");
+            throw new Error('Transaction failed');
         }
+
     } catch (error) {
-        console.error("Payment error:", error);
-        showTransactionError(error.message || "Transaction failed");
+        console.error('Transaction error:\', error);
+        
+        if (error.code === 4001) {
+            showTransactionError('You rejected the transaction');
+        } else if (error.message.includes('user rejected')) {
+            showTransactionError('You rejected the transaction');
+        } else if (error.message.includes('insufficient funds')) {
+            showTransactionError('Insufficient BNB for gas fees');
+        } else if (error.data?.message?.includes('transfer amount exceeds')) {
+            showTransactionError('Insufficient USDT balance');
+        } else {
+            showTransactionError('Transaction failed. Please make sure you have enough USDT and BNB');
+        }
     } finally {
         payButton.disabled = false;
     }
 }
 
-function showTransactionStatus(message, details = '', loading = false) {
+// Show transaction status
+function showTransactionStatus(message, details = \'\', loading = false) {
     transactionStatus.classList.remove('hidden');
     statusMessage.textContent = message;
     statusDetails.textContent = details;
-    if (loading) {
-        loadingSpinner.classList.remove('hidden');
-    } else {
-        loadingSpinner.classList.add('hidden');
+    loadingSpinner.classList.toggle('hidden', !loading);
+}
+
+// Show transaction success
+function showTransactionSuccess() {
+    showTransactionStatus(
+        \'🎉 Transaction successful!\',
+        \'Your tokens will be distributed according to the vesting schedule:\\n\' +\
+        \'• 10% at TGE\\n\' +\
+        \'• 90% over 4 months\',\
+        false
+    );
+    statusMessage.style.color = \'var(--success-color)\';
+}
+
+// Show transaction error
+function showTransactionError(message) {
+    showTransactionStatus('❌ \' + message, \'\', false);
+    statusMessage.style.color = \'var(--error-color)\';
+    payButton.disabled = false;
+}
+
+// Funzione per cambiare lingua
+function changeLanguage(lang) {
+    if (!translations || !translations[lang]) {
+        console.error('Translations not found for language:\', lang);
+        return;
+    }
+
+    // Salva la lingua selezionata
+    localStorage.setItem('selectedLanguage', lang);
+    
+    // Aggiorna la classe active sul selettore della lingua
+    document.querySelectorAll('.language-selector a').forEach(el => {
+        el.classList.remove('active');
+        if (el.getAttribute('data-lang') === lang) {
+            el.classList.add('active');
+        }
+    });
+
+    // Aggiorna tutti gli elementi con attributo data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) { // Aggiunto controllo null/undefined
+            if (element.tagName === 'OPTION') {
+                element.textContent = translations[lang][key];
+            } else {
+                element.innerHTML = translations[lang][key];
+            }
+        }
+    });
+
+    // Aggiorna i placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+         if (translations[lang] && translations[lang][key]) { // Aggiunto controllo null/undefined
+            element.placeholder = translations[lang][key];
+        }
+    });
+
+    // Aggiorna il titolo della pagina
+    if (translations[lang] && translations[lang].title) { // Aggiunto controllo null/undefined
+         document.title = `Akarun Token - ${translations[lang].title}`;
     }
 }
 
-function showTransactionSuccess() {
-    showTransactionStatus('Transaction successful!', '', false);
-    setTimeout(() => {
-        transactionStatus.classList.add('hidden');
-    }, 5000);
-}
+// Aggiungi event listener per i link delle lingue
+document.querySelectorAll('.language-selector a').forEach(el => {
+    el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const lang = e.target.getAttribute('data-lang');
+        changeLanguage(lang);
+    });
+});
 
-function showTransactionError(message) {
-    showTransactionStatus(message, '', false);
-    setTimeout(() => {
-        transactionStatus.classList.add('hidden');
-    }, 5000);
-}
+// Imposta la lingua iniziale quando il DOM è completamente caricato
+window.addEventListener('DOMContentLoaded', () => {
+    // Verifica che le traduzioni siano disponibili
+    if (typeof translations === 'undefined') {
+        console.error('Translations not loaded!');
+        // Puoi aggiungere qui un elemento UI per mostrare un errore all'utente se le traduzioni non si caricano
+        return;
+    }
 
-function changeLanguage(lang) {
-    document.querySelectorAll('[data-lang]').forEach(el => {
-        el.classList.remove('active');
-    });
-    document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
-    
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[lang][key]) {
-            el.textContent = translations[lang][key];
-        }
-    });
-    
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (translations[lang][key]) {
-            el.placeholder = translations[lang][key];
-        }
-    });
-}
+    // La lingua viene impostata DOPO aver inserito la password corretta in validatePassword()
+    // Quindi, la chiamata a changeLanguage qui all'avvio è commentata.
+    // const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+    // changeLanguage(savedLang);
+});
