@@ -4,7 +4,7 @@ const translations = {
         enterPassword: "Enter access password",
         accessSale: "Access Sale",
         networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
-        minMax: "Minimum $2,000 - Maximum $30,000", // Modificato qui
+        minMax: "Minimum $1,000 - Maximum $30,000", // Modificato qui
         paymentInfo: "Payments in USDT (BEP20) on Binance Smart Chain.",
         selectAmount: "Select Contribution Amount:",
         chooseAmount: "Choose amount...",
@@ -23,7 +23,7 @@ const translations = {
         enterPassword: "Inserisci la password di accesso",
         accessSale: "Accedi alla Vendita",
         networkInfo: "Questa vendita si svolge su Binance Smart Chain (BSC)",
-        minMax: "Minimo $2,000 - Massimo $30,000", // Modificato qui
+        minMax: "Minimo $1,000 - Massimo $30,000", // Modificato qui
         paymentInfo: "Pagamenti in USDT (BEP20) su Binance Smart Chain.",
         selectAmount: "Seleziona l'Importo del Contributo:",
         chooseAmount: "Scegli l'importo...",
@@ -42,7 +42,7 @@ const translations = {
         enterPassword: "Ingresa la contraseña de acceso",
         accessSale: "Acceder a la Venta",
         networkInfo: "Esta venta se realiza en Binance Smart Chain (BSC)",
-        minMax: "Mínimo $2,000 - Máximo $30,000", // Modificato qui
+        minMax: "Mínimo $1,000 - Máximo $30,000", // Modificato qui
         paymentInfo: "Los pagos deben realizarse en USDT (BEP20) en Binance Smart Chain a la siguiente dirección:",
         selectAmount: "Selecciona el Monto de Contribución:",
         chooseAmount: "Elige el monto...",
@@ -61,7 +61,7 @@ const translations = {
         enterPassword: "Erişim şifresini girin",
         accessSale: "Satışa Eriş",
         networkInfo: "Bu satış Binance Smart Chain (BSC) üzerinde gerçekleştirilmektedir",
-        minMax: "Minimum $2,000 - Maksimum $30,000", // Modificato qui
+        minMax: "Minimum $1,000 - Maksimum $30,000", // Modificato qui
         paymentInfo: "Ödemeler Binance Smart Chain üzerinde USDT (BEP20) ile aşağıdaki adrese yapılmalıdır:",
         selectAmount: "Katkı Miktarını Seçin:",
         chooseAmount: "Miktar seçin...",
