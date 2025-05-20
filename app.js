@@ -7,6 +7,11 @@ const TOKEN_PRICE = 0.006; // Prezzo del token aggiornato per i calcoli
 // Password Configuration
 const CORRECT_PASSWORD = 'Priv4t3'; // Nuova password di accesso
 
+// Limiti di contribuzione
+const MIN_CONTRIBUTION_USD = 1000;
+const MAX_CONTRIBUTION_USD = 30000;
+const TEST_CONTRIBUTION_USD = 1; // Importo per il test
+
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
 const mainContent = document.getElementById('main-content');
@@ -116,13 +121,18 @@ function validatePassword() {
 
 // Update token amount based on selected USD amount
 function updateTokenAmount() {
-    const selectedAmount = parseInt(amountSelect.value);
-    if (selectedAmount) {
-        // Calcola i token in base al prezzo aggiornato
+    const selectedAmount = parseFloat(amountSelect.value); // Usa parseFloat per importi con decimali (anche se qui sono interi)
+    if (!isNaN(selectedAmount) && selectedAmount > 0) { // Controlla che sia un numero valido e maggiore di 0
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
-        tokenAmount.textContent = tokens.toLocaleString();
+        tokenAmount.textContent = tokens.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }); // Formatta per evitare troppi decimali
         payButton.disabled = false;
+
+        // Potenziale validazione visiva qui (opzionale, la facciamo nella logica di pagamento)
+        // if (selectedAmount !== TEST_CONTRIBUTION_USD && selectedAmount < MIN_CONTRIBUTION_USD) {
+        //     // Mostra un avviso visivo all'utente
+        // }
+
     } else {
         tokenDisplay.classList.add('hidden');
         payButton.disabled = true;
@@ -218,20 +228,31 @@ async function initiatePayment() {
                 "function balanceOf(address) view returns (uint256)",
                 "function decimals() view returns (uint8)"
             ],
-            provider.getSigner()
+            provider.getSigner() // Usa il signer per inviare transazioni
         );
 
         // 4. Get amount to send (in USD)
-        const selectedAmountUSD = amountSelect.value;
-        if (!selectedAmountUSD) {
-            showTransactionError("Please select an amount");
+        const selectedAmountUSD = parseFloat(amountSelect.value); // Usa parseFloat
+        if (isNaN(selectedAmountUSD) || selectedAmountUSD <= 0) {
+             showTransactionError("Please select a valid amount");
+             payButton.disabled = false;
+             return;
+        }
+
+        // Validazione dei limiti di contribuzione
+        if (selectedAmountUSD !== TEST_CONTRIBUTION_USD && (selectedAmountUSD < MIN_CONTRIBUTION_USD || selectedAmountUSD > MAX_CONTRIBUTION_USD)) {
+            showTransactionError(`Contribution must be between $${MIN_CONTRIBUTION_USD} and $${MAX_CONTRIBUTION_USD}, or the $${TEST_CONTRIBUTION_USD} test amount.`);
+            payButton.disabled = false;
             return;
         }
 
+
         // Convert amount to send from USD to USDT units (assuming 1 USDT = 1 USD and 18 decimals)
-        // Questo è il modo corretto per preparare l'importo per il contratto USDT (BEP20).
-        const decimals = await usdtContract.decimals(); // Recupera i decimali esatti dal contratto USDT
-        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD, decimals); // Usa selectedAmountUSD e i decimali effettivi di USDT
+        // Recupera i decimali esatti dal contratto USDT
+        const decimals = await usdtContract.decimals();
+        // Converti l'importo USD selezionato (es. 1, 5000) in BigNumber scalato per i decimali di USDT.
+        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD.toString(), decimals); // Converte selectedAmountUSD in stringa per parseUnits
+
 
         // 5. Check user's USDT balance (con l'importo corretto in unità USDT)
         const balance = await usdtContract.balanceOf(userAddress);
@@ -356,3 +377,22 @@ async function initializeApp() {
          connectWalletBtn.disabled = false; // Abilita il pulsante per mostrare il messaggio
          connectWalletBtn.textContent = 'Install MetaMask'; // Cambia testo pulsante
     }
+
+     // Inizializza la lingua (dipende da translations.js)
+    if (typeof changeLanguage === 'function') {
+        // Cerca la lingua salvata in localStorage o usa il default
+        const savedLang = localStorage.getItem('lang') || 'en'; // 'en' come default se non c'è nulla in localStorage
+        changeLanguage(savedLang);
+         // Imposta la classe 'active' sul selettore lingua corretto
+         document.querySelectorAll('.language-selector a').forEach(link => {
+            if (link.getAttribute('data-lang') === savedLang) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+         });
+    }
+}
+
+// Esegui l'inizializzazione quando il DOM è pronto
+document.addEventListener('DOMContentLoaded', initializeApp);
