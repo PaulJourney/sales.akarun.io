@@ -81,21 +81,21 @@ async function connectWallet() {
     }
 
     connectWalletBtn.disabled = true;
-    connectWalletBtn.textContent = 'Connecting...\';
+    connectWalletBtn.textContent = 'Connecting...'; // Corretto qui
 
     try {
         // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        
+
         // Check if we're on the correct network
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (chainId !== BSC_CHAIN_ID) {
             await switchToBSC();
         }
-        
+
         handleAccountsChanged(accounts);
     } catch (error) {
-        console.error('Error connecting wallet:', error);
+        console.error('Error connecting wallet:', error); // Corretto qui
         walletStatus.textContent = 'Failed to connect wallet';
         walletStatus.className = 'status-text error';
         connectWalletBtn.disabled = false;
@@ -194,21 +194,21 @@ async function initiatePayment() {
         return;
     }
 
-    showTransactionStatus('Connecting to wallet...\', \'\', true);
+    showTransactionStatus('Connecting to wallet...', '', true); // Corretto qui
     payButton.disabled = true;
 
     try {
         // 1. Connect to wallet and verify network
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const network = await provider.getNetwork();
-        
+
         if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
             await switchToBSC();
             showTransactionError("Please switch to Binance Smart Chain and try again");
             return;
         }
 
-        // 2. Get user\'s address
+        // 2. Get user's address
         const accounts = await provider.send("eth_requestAccounts", []);
         const userAddress = accounts[0];
 
@@ -230,7 +230,7 @@ async function initiatePayment() {
             return;
         }
 
-        // 5. Check user\'s USDT balance
+        // 5. Check user's USDT balance
         const balance = await usdtContract.balanceOf(userAddress);
         const decimals = await usdtContract.decimals();
         const amount = ethers.utils.parseUnits(selectedAmount, decimals);
@@ -241,16 +241,16 @@ async function initiatePayment() {
         }
 
         // 6. Send transaction
-        showTransactionStatus('Please confirm the transaction in MetaMask...\', \'\', true);
-        
+        showTransactionStatus('Please confirm the transaction in MetaMask...', '', true); // Corretto qui
+
         const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
             gasLimit: 100000
         });
 
-        showTransactionStatus('Transaction submitted, waiting for confirmation...\', `Hash: ${tx.hash}`, true);
-        
+        showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true); // Corretto qui
+
         const receipt = await tx.wait();
-        
+
         if (receipt.status === 1) {
             showTransactionSuccess();
         } else {
@@ -258,8 +258,8 @@ async function initiatePayment() {
         }
 
     } catch (error) {
-        console.error('Transaction error:\', error);
-        
+        console.error('Transaction error:', error); // Corretto qui
+
         if (error.code === 4001) {
             showTransactionError('You rejected the transaction');
         } else if (error.message.includes('user rejected')) {
@@ -277,7 +277,7 @@ async function initiatePayment() {
 }
 
 // Show transaction status
-function showTransactionStatus(message, details = \'\', loading = false) {
+function showTransactionStatus(message, details = '', loading = false) {
     transactionStatus.classList.remove('hidden');
     statusMessage.textContent = message;
     statusDetails.textContent = details;
@@ -287,32 +287,32 @@ function showTransactionStatus(message, details = \'\', loading = false) {
 // Show transaction success
 function showTransactionSuccess() {
     showTransactionStatus(
-        \'🎉 Transaction successful!\',
-        \'Your tokens will be distributed according to the vesting schedule:\\n\' +\
-        \'• 10% at TGE\\n\' +\
-        \'• 90% over 4 months\',\
+        'Transaction successful!', // Rimosso carattere speciale e corretto stringa
+        'Your tokens will be distributed according to the vesting schedule:\n' + // Corretto stringa
+        '• 10% at TGE\n' + // Corretto stringa
+        '• 90% over 4 months', // Corretto stringa
         false
     );
-    statusMessage.style.color = \'var(--success-color)\';
+    statusMessage.style.color = 'var(--success-color)';
 }
 
 // Show transaction error
 function showTransactionError(message) {
-    showTransactionStatus('❌ \' + message, \'\', false);
-    statusMessage.style.color = \'var(--error-color)\';
+    showTransactionStatus('Error: ' + message, '', false); // Semplificato messaggio e corretto stringa
+    statusMessage.style.color = 'var(--error-color)';
     payButton.disabled = false;
 }
 
 // Funzione per cambiare lingua
 function changeLanguage(lang) {
     if (!translations || !translations[lang]) {
-        console.error('Translations not found for language:\', lang);
+        console.error('Translations not found for language:', lang); // Corretto qui
         return;
     }
 
     // Salva la lingua selezionata
     localStorage.setItem('selectedLanguage', lang);
-    
+
     // Aggiorna la classe active sul selettore della lingua
     document.querySelectorAll('.language-selector a').forEach(el => {
         el.classList.remove('active');
@@ -352,21 +352,4 @@ document.querySelectorAll('.language-selector a').forEach(el => {
     el.addEventListener('click', (e) => {
         e.preventDefault();
         const lang = e.target.getAttribute('data-lang');
-        changeLanguage(lang);
-    });
-});
-
-// Imposta la lingua iniziale quando il DOM è completamente caricato
-window.addEventListener('DOMContentLoaded', () => {
-    // Verifica che le traduzioni siano disponibili
-    if (typeof translations === 'undefined') {
-        console.error('Translations not loaded!');
-        // Puoi aggiungere qui un elemento UI per mostrare un errore all'utente se le traduzioni non si caricano
-        return;
-    }
-
-    // La lingua viene impostata DOPO aver inserito la password corretta in validatePassword()
-    // Quindi, la chiamata a changeLanguage qui all'avvio è commentata.
-    // const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-    // changeLanguage(savedLang);
-});
+        change
