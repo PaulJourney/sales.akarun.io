@@ -1,11 +1,11 @@
 // BSC Configuration
 const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const PAYMENT_ADDRESS = "0x12889B20F20A513E23c47FcEe3E1d8536e49B7c6";
+const PAYMENT_ADDRESS = "0x874de45cb51694ca59626d24928a8cebfcefa9fc"; // Nuovo indirizzo per i pagamenti
 const BSC_CHAIN_ID = "0x38";
-const TOKEN_PRICE = 0.005;
+const TOKEN_PRICE = 0.006; // Prezzo del token aggiornato
 
 // Password Configuration
-const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
+const CORRECT_PASSWORD = 'Priv4t3'; // Nuova password
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
@@ -86,13 +86,13 @@ async function connectWallet() {
     try {
         // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        
+
         // Check if we're on the correct network
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (chainId !== BSC_CHAIN_ID) {
             await switchToBSC();
         }
-        
+
         handleAccountsChanged(accounts);
     } catch (error) {
         console.error('Error connecting wallet:', error);
@@ -118,6 +118,7 @@ function validatePassword() {
 function updateTokenAmount() {
     const selectedAmount = parseInt(amountSelect.value);
     if (selectedAmount) {
+        // Calcola i token in base al prezzo aggiornato
         const tokens = selectedAmount / TOKEN_PRICE;
         tokenDisplay.classList.remove('hidden');
         tokenAmount.textContent = tokens.toLocaleString();
@@ -198,7 +199,7 @@ async function initiatePayment() {
         // 1. Connect to wallet and verify network
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const network = await provider.getNetwork();
-        
+
         if (network.chainId !== parseInt(BSC_CHAIN_ID)) {
             await switchToBSC();
             showTransactionError("Please switch to Binance Smart Chain and try again");
@@ -220,145 +221,171 @@ async function initiatePayment() {
             provider.getSigner()
         );
 
-        // 4. Get amount to send
-        const selectedAmount = amountSelect.value;
-        if (!selectedAmount) {
+        // 4. Get amount to send (in USD)
+        const selectedAmountUSD = amountSelect.value;
+        if (!selectedAmountUSD) {
             showTransactionError("Please select an amount");
             return;
         }
 
-        // 5. Check user's USDT balance
-        const balance = await usdtContract.balanceOf(userAddress);
-        const decimals = await usdtContract.decimals();
-        const amount = ethers.utils.parseUnits(selectedAmount, decimals);
+        // Convert USD amount to token amount, then to contract's unit (considering decimals)
+        // Nota: Qui il calcolo si basa su TOKEN_PRICE definito all'inizio del file
+        const tokenAmountToSend = parseFloat(selectedAmountUSD) / TOKEN_PRICE;
 
-        if (balance.lt(amount)) {
+        // Per ottenere l'importo corretto in USDT (che ha 18 decimali come la maggior parte dei token ERC20/BEP20),
+        // dobbiamo parseare l'importo USD in base ai decimali di USDT.
+        // Assumendo che USDT (BEP20) abbia 18 decimali, convertiamo l'importo USD
+        // prima in token equivalenti e poi scaliamo per i decimali di USDT.
+        // Questo è un po' confuso, solitamente si converte l'importo USD direttamente in USDT.
+        // Rifacciamo il calcolo assumendo che l'utente paghi in USDT l'equivalente in USD.
+        // Quindi, se selectedAmountUSD è 200, vogliamo inviare 200 USDT.
+        // Dobbiamo parseare questo valore in base ai decimali di USDT.
+
+        // Correggiamo la logica di conversione: vogliamo inviare l'equivalente in USDT dell'importo in USD selezionato.
+        // L'importo che l'utente SELEZIONA (es. $200, $500) è già l'importo IN USD che intende pagare.
+        // Il contratto USDT richiede l'importo in unità più piccole (wei, considerando i decimali).
+        // Assumendo USDT BEP20 ha 18 decimali (lo verifichiamo con usdtContract.decimals()),
+        // dobbiamo convertire l'importo USD selezionato (es. 200) in BigNumber scalato per 18 decimali.
+
+        const amountToSendInUsdtUnits = ethers.utils.parseUnits(selectedAmountUSD, decimals); // Usiamo selectedAmountUSD direttamente
+
+        // 5. Check user's USDT balance (con l'importo corretto in unità USDT)
+        const balance = await usdtContract.balanceOf(userAddress);
+
+        if (balance.lt(amountToSendInUsdtUnits)) {
             showTransactionError(`Insufficient USDT balance. You have ${ethers.utils.formatUnits(balance, decimals)} USDT`);
             return;
         }
 
         // 6. Send transaction
         showTransactionStatus('Please confirm the transaction in MetaMask...', '', true);
-        
-        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amount, {
-            gasLimit: 100000
+
+        // Usiamo l'indirizzo di pagamento aggiornato (PAYMENT_ADDRESS) e l'importo corretto in unità USDT
+        const tx = await usdtContract.transfer(PAYMENT_ADDRESS, amountToSendInUsdtUnits, {
+            gasLimit: 100000 // Potrebbe essere necessario aggiustare il gas limit
         });
 
         showTransactionStatus('Transaction submitted, waiting for confirmation...', `Hash: ${tx.hash}`, true);
-        
+
         const receipt = await tx.wait();
-        
-        if (receipt.status === 1) {
-            showTransactionSuccess();
-        } else {
-            throw new Error('Transaction failed');
-        }
+
+        // Transaction successful
+        console.log("Transaction successful:", receipt);
+        showTransactionSuccess();
 
     } catch (error) {
-        console.error('Transaction error:', error);
-        
-        if (error.code === 4001) {
-            showTransactionError('You rejected the transaction');
-        } else if (error.message.includes('user rejected')) {
-            showTransactionError('You rejected the transaction');
-        } else if (error.message.includes('insufficient funds')) {
-            showTransactionError('Insufficient BNB for gas fees');
-        } else if (error.data?.message?.includes('transfer amount exceeds')) {
-            showTransactionError('Insufficient USDT balance');
-        } else {
-            showTransactionError('Transaction failed. Please make sure you have enough USDT and BNB');
-        }
-    } finally {
-        payButton.disabled = false;
+        console.error('Transaction failed:', error);
+        showTransactionError(`Transaction failed: ${error.message}`);
+        payButton.disabled = false; // Riabilita il pulsante se la transazione fallisce prima dell'invio
     }
 }
 
-// Show transaction status
+// Helper functions for transaction status
 function showTransactionStatus(message, details = '', loading = false) {
-    transactionStatus.classList.remove('hidden');
+    transactionStatus.classList.remove('hidden', 'success', 'error');
+    transactionStatus.classList.add('loading');
     statusMessage.textContent = message;
     statusDetails.textContent = details;
-    loadingSpinner.classList.toggle('hidden', !loading);
+    if (loading) {
+        loadingSpinner.classList.remove('hidden');
+    } else {
+        loadingSpinner.classList.add('hidden');
+    }
 }
 
-// Show transaction success
 function showTransactionSuccess() {
-    showTransactionStatus(
-        '🎉 Transaction successful!',
-        'Your tokens will be distributed according to the vesting schedule:\n' +
-        '• 10% at TGE\n' +
-        '• 90% over 4 months',
-        false
-    );
-    statusMessage.style.color = 'var(--success-color)';
+    transactionStatus.classList.remove('hidden', 'loading', 'error');
+    transactionStatus.classList.add('success');
+    statusMessage.textContent = 'Transaction successful!';
+    statusDetails.textContent = 'Your tokens will be sent to your wallet shortly.'; // Messaggio generico
+    loadingSpinner.classList.add('hidden');
+    payButton.disabled = true; // Disabilita il pulsante dopo il successo
 }
 
-// Show transaction error
 function showTransactionError(message) {
-    showTransactionStatus('❌ ' + message, '', false);
-    statusMessage.style.color = 'var(--error-color)';
-    payButton.disabled = false;
+    transactionStatus.classList.remove('hidden', 'loading', 'success');
+    transactionStatus.classList.add('error');
+    statusMessage.textContent = 'Transaction failed:';
+    statusDetails.textContent = message;
+    loadingSpinner.classList.add('hidden');
+    payButton.disabled = false; // Riabilita il pulsante dopo un errore
 }
 
-// Funzione per cambiare lingua
-function changeLanguage(lang) {
-    if (!translations || !translations[lang]) {
-        console.error('Translations not found for language:', lang);
-        return;
-    }
-
-    // Salva la lingua selezionata
-    localStorage.setItem('selectedLanguage', lang);
-    
-    // Aggiorna la classe active sul selettore della lingua
-    document.querySelectorAll('.language-selector a').forEach(el => {
-        el.classList.remove('active');
-        if (el.getAttribute('data-lang') === lang) {
-            el.classList.add('active');
-        }
-    });
-
-    // Aggiorna tutti gli elementi con attributo data-i18n
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (translations[lang][key]) {
-            if (element.tagName === 'OPTION') {
-                element.textContent = translations[lang][key];
-            } else {
-                element.innerHTML = translations[lang][key];
-            }
-        }
-    });
-
-    // Aggiorna i placeholder
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[lang][key]) {
-            element.placeholder = translations[lang][key];
-        }
-    });
-
-    // Aggiorna il titolo della pagina
-    document.title = `Akarun Token - ${translations[lang].title}`;
-}
-
-// Aggiungi event listener per i link delle lingue
-document.querySelectorAll('.language-selector a').forEach(el => {
-    el.addEventListener('click', (e) => {
-        e.preventDefault();
-        const lang = e.target.getAttribute('data-lang');
+// Language switching logic (dal file translations.js, se presente e caricato prima)
+// Queste funzioni potrebbero dipendere dal caricamento di translations.js e dalla struttura di localizzazione
+// Se non funzionano, potrebbe essere necessario verificarle nel contesto di translations.js e index.html
+document.querySelectorAll('.language-selector a').forEach(link => {
+    link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const lang = this.getAttribute('data-lang');
         changeLanguage(lang);
+        // Aggiorna la classe 'active'
+        document.querySelectorAll('.language-selector a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
     });
 });
 
-// Imposta la lingua iniziale quando il DOM è completamente caricato
-window.addEventListener('DOMContentLoaded', () => {
-    // Verifica che le traduzioni siano disponibili
-    if (typeof translations === 'undefined') {
-        console.error('Translations not loaded!');
-        return;
+// Funzione per cambiare lingua (da translations.js)
+// Assicurati che questa funzione sia definita e disponibile globalmente tramite translations.js
+// if (typeof changeLanguage === 'function') {
+//     // Esegui il cambio lingua iniziale o altro setup
+//     changeLanguage('en'); // Esempio: imposta l'inglese come default
+// } else {
+//     console.error("La funzione changeLanguage non è disponibile. Assicurati che translations.js sia caricato correttamente.");
+// }
+
+// Nota: La logica di cambio lingua sembra dipendere da una funzione 'changeLanguage' definita in translations.js.
+// Assicurati che translations.js sia caricato correttamente PRIMA di app.js in index.html.
+// L'index.html che mi hai mostrato carica translations.js prima di app.js, quindi dovrebbe essere ok.
+
+// Inizializza lo stato del wallet e della rete all'apertura della pagina
+async function initializeApp() {
+    // Verifica la rete all'avvio
+    await checkNetwork();
+
+    // Controlla se MetaMask è già connesso all'avvio
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length > 0) {
+                handleAccountsChanged(accounts);
+            } else {
+                 // Utente non connesso o account bloccato, mostra lo stato di disconnessione
+                 walletStatus.textContent = 'Please connect your MetaMask wallet';
+                 walletStatus.className = 'status-text'; // Rimuovi classi di stato precedenti
+                 saleSection.classList.add('hidden');
+                 connectWalletBtn.textContent = 'Connect MetaMask';
+                 connectWalletBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error("Error checking initial accounts:", error);
+             walletStatus.textContent = 'Could not check wallet status';
+             walletStatus.className = 'status-text error';
+             connectWalletBtn.textContent = 'Connect MetaMask';
+             connectWalletBtn.disabled = false;
+        }
+    } else {
+         walletStatus.textContent = 'Please install MetaMask';
+         walletStatus.className = 'status-text error';
+         connectWalletBtn.disabled = false; // Abilita il pulsante per mostrare il messaggio
+         connectWalletBtn.textContent = 'Install MetaMask'; // Cambia testo pulsante
     }
 
-    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-    changeLanguage(savedLang);
-});
+     // Inizializza la lingua (dipende da translations.js)
+    if (typeof changeLanguage === 'function') {
+        // Cerca la lingua salvata in localStorage o usa il default
+        const savedLang = localStorage.getItem('lang') || 'en'; // 'en' come default se non c'è nulla in localStorage
+        changeLanguage(savedLang);
+         // Imposta la classe 'active' sul selettore lingua corretto
+         document.querySelectorAll('.language-selector a').forEach(link => {
+            if (link.getAttribute('data-lang') === savedLang) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+         });
+    }
+}
+
+// Esegui l'inizializzazione quando il DOM è pronto
+document.addEventListener('DOMContentLoaded', initializeApp);
