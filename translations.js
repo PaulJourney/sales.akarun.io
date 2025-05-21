@@ -1,6 +1,6 @@
 const translations = {
     en: {
-        title: "Family & Friends Sale",
+        title: "Friends Sale",
         enterPassword: "Enter access password",
         accessSale: "Access Sale",
         networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
@@ -19,7 +19,7 @@ const translations = {
         requirement4: "Some BNB for gas fees"
     },
     it: {
-        title: "Vendita Family & Friends",
+        title: "Vendita Friends",
         enterPassword: "Inserisci la password di accesso",
         accessSale: "Accedi alla Vendita",
         networkInfo: "Questa vendita si svolge su Binance Smart Chain (BSC)",
@@ -38,7 +38,7 @@ const translations = {
         requirement4: "Un po' di BNB per le fee"
     },
     es: {
-        title: "Venta Family & Friends",
+        title: "Venta Friends",
         enterPassword: "Ingresa la contraseña de acceso",
         accessSale: "Acceder a la Venta",
         networkInfo: "Esta venta se realiza en Binance Smart Chain (BSC)",
@@ -76,7 +76,7 @@ const translations = {
         requirement4: "İşlem ücretleri için BNB"
     },
     ph: {
-        title: "Family & Friends Sale",
+        title: "Friends Sale",
         enterPassword: "Ilagay ang access password",
         accessSale: "Access ang Sale",
         networkInfo: "Ang sale na ito ay isinasagawa sa Binance Smart Chain (BSC)",
