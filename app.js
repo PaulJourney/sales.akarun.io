@@ -5,7 +5,7 @@ const BSC_CHAIN_ID = "0x38";
 const TOKEN_PRICE = 0.005;
 
 // Password Configuration
-const CORRECT_PASSWORD = '$©Ω[€"\'¢ÇÅ$';
+const CORRECT_PASSWORD = 'FR13NDS';
 
 // DOM Elements
 const passwordSection = document.getElementById('password-section');
