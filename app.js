@@ -287,7 +287,7 @@ function showTransactionSuccess() {
         '🎉 Transaction successful!',
         'Your tokens will be distributed according to the vesting schedule:\n' +
         '• 10% at TGE\n' +
-        '• 90% over 4 months',
+        '• 90% over 2 months',
         false
     );
     statusMessage.style.color = 'var(--success-color)';
