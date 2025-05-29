@@ -4,7 +4,7 @@ const translations = {
         enterPassword: "Enter access password",
         accessSale: "Access Sale",
         networkInfo: "This sale is conducted on Binance Smart Chain (BSC)",
-        minMax: "Minimum $1,000 - Maximum $30,000", // Modificato qui
+        minMax: "Minimum $100 - Maximum $30,000", // Modificato qui
         paymentInfo: "Payments in USDT (BEP20) on Binance Smart Chain.",
         selectAmount: "Select Contribution Amount:",
         chooseAmount: "Choose amount...",
